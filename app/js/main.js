@@ -52,7 +52,7 @@ function initWorld() {
   mouse = new THREE.Vector2();
 
   // custom shader
-  attributes = {
+  /*attributes = {
     size: { type: 'f', value: [] },
     ca: { type: 'c', value: [] }
   };
@@ -60,9 +60,26 @@ function initWorld() {
   uniforms = {
     color: { type: "c", value: new THREE.Color( 0xffffff ) },
     texture: { type: "t", value: 0, texture: THREE.ImageUtils.loadTexture('app/textures/sprites/disc.png') }
+  };*/
+
+  attributes = {
+      alpha: { type: 'f', value: [] },
   };
 
+  uniforms = {
+    color: { type: "c", value: new THREE.Color( 0xff0000 ) }
+  };
 
+  // particle system material
+  var newShaderMaterial = new THREE.ShaderMaterial( {
+
+      uniforms:       uniforms,
+      attributes:     attributes,
+      vertexShader:   document.getElementById( 'vertexshader' ).textContent,
+      fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
+      transparent: true
+
+  });
 
   // the camera starts at 0,0,0 so pull it back
   camera.position.z = 1000;
@@ -75,9 +92,9 @@ function initWorld() {
   // renderer.setClearColor(new THREE.Color(0, 1));
   renderer.setSize(WIDTH, HEIGHT);
 
-  // create the particle variables
   pointCloudGeometry = new THREE.Geometry();
-  var pointCloudMaterial = new THREE.PointCloudMaterial({
+
+  /*var pointCloudMaterial = new THREE.PointCloudMaterial({
     color: 0xffffff,
     size: PARTICLE_SIZE,
     fog: true
@@ -91,7 +108,7 @@ function initWorld() {
     ),
     blending: THREE.AdditiveBlending,
     transparent: true
-  });
+  });*/
 
 
   // now create the individual particles
@@ -108,19 +125,22 @@ function initWorld() {
 
     // add it to the particle system
     pointCloudGeometry.vertices.push(particle);
+
+    // set alpha based on distance to (local) y-axis
+    attributes.alpha.value[ i ] = Math.abs( pointCloudGeometry.vertices[ i ].x / 100 );
   }
 
-  var shaderMaterial = new THREE.ShaderMaterial( {
+  /*var shaderMaterial = new THREE.ShaderMaterial( {
 
     uniforms: uniforms,
     attributes: attributes,
     vertexShader: document.getElementById( 'vertexshader' ).textContent,
     // fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
     depthTest: false
-  });
+  });*/
 
 
-  var radius = 150;
+  /*var radius = 150;
   var vertices = pointCloudGeometry.vertices;
   var values_size = attributes.size.value;
   var values_color = attributes.ca.value;
@@ -136,15 +156,15 @@ function initWorld() {
 
     values_color[ i ].setHSL( 0.01 + 0.1 * ( i / NUM_PARTICLES ), 0.99, ( vertices[ i ].y + radius ) / ( 2 * radius ) );
 
-  }
+  }*/
 
 
 
 
   // create the particle system
-  pointCloud = new THREE.PointCloud(pointCloudGeometry, pointCloudMaterial2/*pointCloudMaterial*/);
-  pointCloud.dynamic = true;
+  pointCloud = new THREE.PointCloud(pointCloudGeometry, newShaderMaterial);
   pointCloud.sortParticles = true;
+  pointCloud.dynamic = true;
 
 
 
@@ -210,11 +230,18 @@ function highlightParticle(p) {
 
 function render() {
 
-  /*if (intersectedIndex > 0) {
-    attributes.size.value[ intersectedIndex ] = PARTICLE_SIZE * 10;
-    attributes.size.needsUpdate = true;
-    attributes.ca.needsUpdate = true;
-  }*/
+  for( var i = 0; i < attributes.alpha.value.length; i++ ) {
+
+      // dynamically change alphas
+      attributes.alpha.value[ i ] *= 0.99;
+
+      if ( attributes.alpha.value[ i ] < 0.2 ) {
+          attributes.alpha.value[ i ] = Math.abs( pointCloudGeometry.vertices[ i ].x / 100 );
+      }
+
+  }
+
+  attributes.alpha.needsUpdate = true; // important!
 
   raycaster.setFromCamera( mouse, camera );
 
