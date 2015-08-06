@@ -14,8 +14,8 @@ window.requestAnimFrame = (function(){
     };
   })();
 
-var NUM_PARTICLES = 100000;
-var PARTICLE_SIZE = 2;
+var NUM_PARTICLES = 1000;
+var PARTICLE_SIZE = 40;
 
 // set the scene size
 var WIDTH = window.innerWidth,
@@ -39,13 +39,12 @@ var attributes, uniforms;
 
 initWorld();
 animate();
-render();
 
 function initWorld() {
 
   // create a WebGL renderer, camera, and a scene
   scene = new THREE.Scene();
-  renderer = new THREE.WebGLRenderer();
+  renderer = new THREE.WebGLRenderer({ clearColor: 0x000000, clearAlpha: 1 });
   camera = new THREE.PerspectiveCamera(VIEW_ANGLE, window.innerWidth / window.innerHeight, NEAR, FAR);
 
   // for collision detection with mouse vector
@@ -55,8 +54,7 @@ function initWorld() {
   // custom shader
   attributes = {
     size: { type: 'f', value: [] },
-    // ca: { type: 'c', value: [] },
-    value_color: { type: 'c', value: [] }
+    ca: { type: 'c', value: [] }
   };
 
   uniforms = {
@@ -64,13 +62,7 @@ function initWorld() {
     texture: { type: "t", value: 0, texture: THREE.ImageUtils.loadTexture('app/textures/sprites/disc.png') }
   };
 
-  var shaderMaterial = new THREE.ShaderMaterial( {
-    uniforms: uniforms,
-    attributes: attributes,
-    vertexShader: document.getElementById( 'vertexshader' ).textContent,
-    fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
-    depthTest: false,
-  });
+
 
   // the camera starts at 0,0,0 so pull it back
   camera.position.z = 1000;
@@ -80,7 +72,7 @@ function initWorld() {
 
 
   // start the renderer - set a colour with full opacity
-  renderer.setClearColor(new THREE.Color(0, 1));
+  // renderer.setClearColor(new THREE.Color(0, 1));
   renderer.setSize(WIDTH, HEIGHT);
 
   // create the particle variables
@@ -109,26 +101,48 @@ function initWorld() {
     pointCloudGeometry.vertices.push(particle);
   }
 
-  var radius = 150;
+  var shaderMaterial = new THREE.ShaderMaterial( {
 
-  for( var i = 0; i < NUM_PARTICLES; i++ ) {
+    uniforms: uniforms,
+    attributes: attributes,
+    vertexShader: document.getElementById( 'vertexshader' ).textContent,
+    fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
+    depthTest: false
+  });
+
+
+  var radius = 150;
+  var vertices = pointCloudGeometry.vertices;
+  var values_size = attributes.size.value;
+  var values_color = attributes.ca.value;
+
+  for( var i = 0; i < vertices.length; i++ ) {
 
     // custom shader colors for particles
-    attributes.size.value[ i ] = PARTICLE_SIZE;
-    attributes.value_color.value[ i ] = new THREE.Color( 0xffffff );
-    // attributes.ca.value[ i ].setHSV( 0.01 + 0.1 * ( i / NUM_PARTICLES ), 0.99, ( pointCloudGeometry.vertices[ i ].y + radius ) / ( 2 * radius ) );
+    values_size[i] = PARTICLE_SIZE;
+    values_color[i] = new THREE.Color( 0, 1, 0 );
+
+    // values_color[i] = new THREE.Color( 0.01 + 0.1 * ( i / NUM_PARTICLES ), 0.99, 0 );
+
+
+    values_color[ i ].setHSL( 0.01 + 0.1 * ( i / NUM_PARTICLES ), 0.99, ( vertices[ i ].y + radius ) / ( 2 * radius ) );
 
   }
 
-  setAttributeNeedsUpdateFlags();
+
+
 
   // create the particle system
   pointCloud = new THREE.PointCloud(pointCloudGeometry, shaderMaterial/*pointCloudMaterial*/);
-
   pointCloud.dynamic = true;
+  pointCloud.sortParticles = true;
 
-  scene.add(pointCloud);
+
+
+  // setAttributeNeedsUpdateFlags();
+
   scene.add(camera);
+  scene.add(pointCloud);
 
   window.addEventListener( 'resize', onWindowResize, false );
   window.addEventListener( 'mousemove', onDocumentMouseMove, false );
@@ -137,7 +151,7 @@ function initWorld() {
 }
 
 function setAttributeNeedsUpdateFlags() {
-  attributes.value_color.needsUpdate = true;
+  attributes.ca.needsUpdate = true;
   // attributes.locked.needsUpdate = true;
   attributes.size.needsUpdate = true;
 }
@@ -187,11 +201,13 @@ function highlightParticle(p) {
 
 function render() {
 
-  if (intersectedIndex > 0) {
+  /*if (intersectedIndex > 0) {
     attributes.size.value[ intersectedIndex ] = PARTICLE_SIZE * 10;
     attributes.size.needsUpdate = true;
+    attributes.ca.needsUpdate = true;
+  }*/
 
-  }
+
 
   renderer.render( scene, camera );
 }
