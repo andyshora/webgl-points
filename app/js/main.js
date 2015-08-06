@@ -15,7 +15,7 @@ window.requestAnimFrame = (function(){
   })();
 
 var NUM_PARTICLES = 1000;
-var PARTICLE_SIZE = 40;
+var PARTICLE_SIZE = 10;
 
 // set the scene size
 var WIDTH = window.innerWidth,
@@ -83,6 +83,15 @@ function initWorld() {
     fog: true
   });
 
+  var pointCloudMaterial2 = new THREE.PointCloudMaterial({
+    color: 0xFFFFFF,
+    size: 20,
+    map: THREE.ImageUtils.loadTexture(
+      'app/textures/sprites/ball.png'
+    ),
+    blending: THREE.AdditiveBlending,
+    transparent: true
+  });
 
 
   // now create the individual particles
@@ -106,7 +115,7 @@ function initWorld() {
     uniforms: uniforms,
     attributes: attributes,
     vertexShader: document.getElementById( 'vertexshader' ).textContent,
-    fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
+    // fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
     depthTest: false
   });
 
@@ -120,7 +129,7 @@ function initWorld() {
 
     // custom shader colors for particles
     values_size[i] = PARTICLE_SIZE;
-    values_color[i] = new THREE.Color( 0, 1, 0 );
+    values_color[i] = new THREE.Color( 1, 1, 1 );
 
     // values_color[i] = new THREE.Color( 0.01 + 0.1 * ( i / NUM_PARTICLES ), 0.99, 0 );
 
@@ -133,7 +142,7 @@ function initWorld() {
 
 
   // create the particle system
-  pointCloud = new THREE.PointCloud(pointCloudGeometry, shaderMaterial/*pointCloudMaterial*/);
+  pointCloud = new THREE.PointCloud(pointCloudGeometry, pointCloudMaterial2/*pointCloudMaterial*/);
   pointCloud.dynamic = true;
   pointCloud.sortParticles = true;
 
@@ -185,7 +194,7 @@ function onDocumentMouseMove( event ) {
   mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
   raycaster.setFromCamera( mouse, camera );
-  var intersects = raycaster.intersectObjects([ pointCloud ], false );
+  var intersects = raycaster.intersectObjects([ pointCloud ], true );
   if (intersects.length) {
     highlightParticle(intersects[0]);
   }
@@ -207,7 +216,7 @@ function render() {
     attributes.ca.needsUpdate = true;
   }*/
 
-
+  raycaster.setFromCamera( mouse, camera );
 
   renderer.render( scene, camera );
 }
