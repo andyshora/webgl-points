@@ -14,8 +14,8 @@ window.requestAnimFrame = (function(){
     };
   })();
 
-var NUM_PARTICLES = 1000;
-var PARTICLE_SIZE = 10;
+var NUM_PARTICLES = 100;
+var PARTICLE_SIZE = 4;
 
 // set the scene size
 var WIDTH = window.innerWidth,
@@ -45,7 +45,7 @@ function initWorld() {
   // create a WebGL renderer, camera, and a scene
   scene = new THREE.Scene();
   renderer = new THREE.WebGLRenderer({ clearColor: 0x000000, clearAlpha: 1 });
-  camera = new THREE.PerspectiveCamera(VIEW_ANGLE, window.innerWidth / window.innerHeight, NEAR, FAR);
+  camera = new THREE.PerspectiveCamera(VIEW_ANGLE, WIDTH / HEIGHT, NEAR, FAR);
 
   // for collision detection with mouse vector
   raycaster = new THREE.Raycaster();
@@ -63,11 +63,13 @@ function initWorld() {
   };*/
 
   attributes = {
-      alpha: { type: 'f', value: [] },
+    alpha: { type: 'f', value: [] },
+    customColor: { type: 'c', value: [] },
+    texture1: { type: "t", value: THREE.ImageUtils.loadTexture('app/textures/sprites/ball.png') }
   };
 
   uniforms = {
-    color: { type: "c", value: new THREE.Color( 0xff0000 ) }
+    color: { type: 'c', value: new THREE.Color( 0xff00ff ) }
   };
 
   // particle system material
@@ -77,7 +79,8 @@ function initWorld() {
       attributes:     attributes,
       vertexShader:   document.getElementById( 'vertexshader' ).textContent,
       fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
-      transparent: true
+      transparent: true,
+      vertexColor: true
 
   });
 
@@ -127,8 +130,16 @@ function initWorld() {
     pointCloudGeometry.vertices.push(particle);
 
     // set alpha based on distance to (local) y-axis
-    attributes.alpha.value[ i ] = Math.abs( pointCloudGeometry.vertices[ i ].x / 100 );
+    // attributes.alpha.value[ i ] = .2 + Math.abs( (pointCloudGeometry.vertices[ i ].x + 250) / 2000 );
+    attributes.alpha.value[ i ] = 1;
+
+    attributes.customColor.value[i] = new THREE.Color( 0x00ffff );
+
+    attributes.customColor.value[ i ] = new THREE.Color( 0xffffff );
+    // attributes.customColor.value[ i ].setRGB(Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), Math.floor(Math.random() * 255));
+
   }
+  attributes.customColor.needsUpdate = true;
 
   /*var shaderMaterial = new THREE.ShaderMaterial( {
 
@@ -230,7 +241,7 @@ function highlightParticle(p) {
 
 function render() {
 
-  for( var i = 0; i < attributes.alpha.value.length; i++ ) {
+  /*for( var i = 0; i < attributes.alpha.value.length; i++ ) {
 
       // dynamically change alphas
       attributes.alpha.value[ i ] *= 0.99;
@@ -241,7 +252,7 @@ function render() {
 
   }
 
-  attributes.alpha.needsUpdate = true; // important!
+  attributes.alpha.needsUpdate = true;*/
 
   raycaster.setFromCamera( mouse, camera );
 
