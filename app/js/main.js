@@ -14,19 +14,20 @@ window.requestAnimFrame = (function(){
     };
   })();
 
-var NUM_PARTICLES = 10000;
+var NUM_PARTICLES = 1000;
 var PARTICLE_SIZE = 1;
 
 // set the scene size
 var WIDTH = window.innerWidth,
     HEIGHT = window.innerHeight;
 
+var WORLD_SIZE = 100;
+
 // set some camera attributes
 var VIEW_ANGLE = 60,
     NEAR = 1,
-    FAR = 5000;
+    FAR = WORLD_SIZE * 10;
 
-var WORLD_SIZE = 1000;
 
 var scene, renderer, camera, controls, raycaster;
 
@@ -77,20 +78,20 @@ function initWorld() {
 
   // particle system material
   var newShaderMaterial = new THREE.ShaderMaterial( {
-
-      uniforms:       uniforms,
-      attributes:     attributes,
-      vertexShader:   document.getElementById( 'vertexshader' ).textContent,
-      fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
-      transparent: true,
-      vertexColor: true
-
+    uniforms:       uniforms,
+    attributes:     attributes,
+    vertexShader:   document.getElementById( 'vertexshader' ).textContent,
+    fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
+    transparent: true,
+    vertexColor: true
   });
 
   // the camera starts at 0,0,0 so pull it back
   camera.position.z = WORLD_SIZE * 2;
 
   controls = new THREE.OrbitControls( camera );
+  controls.zoomSpeed = 0.5;
+  controls.maxDistance = WORLD_SIZE * 5;
   controls.addEventListener('change', render);
 
 
