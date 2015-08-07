@@ -14,8 +14,8 @@ window.requestAnimFrame = (function(){
     };
   })();
 
-var NUM_PARTICLES = 100;
-var PARTICLE_SIZE = 4;
+var NUM_PARTICLES = 10000;
+var PARTICLE_SIZE = 1;
 
 // set the scene size
 var WIDTH = window.innerWidth,
@@ -25,6 +25,8 @@ var WIDTH = window.innerWidth,
 var VIEW_ANGLE = 60,
     NEAR = 1,
     FAR = 5000;
+
+var WORLD_SIZE = 1000;
 
 var scene, renderer, camera, controls, raycaster;
 
@@ -69,7 +71,8 @@ function initWorld() {
   };
 
   uniforms = {
-    color: { type: 'c', value: new THREE.Color( 0xff00ff ) }
+    color: { type: 'c', value: new THREE.Color( 0xff00ff ) },
+    size: { type: 'f', value: 2 }
   };
 
   // particle system material
@@ -85,7 +88,7 @@ function initWorld() {
   });
 
   // the camera starts at 0,0,0 so pull it back
-  camera.position.z = 1000;
+  camera.position.z = WORLD_SIZE * 2;
 
   controls = new THREE.OrbitControls( camera );
   controls.addEventListener('change', render);
@@ -118,9 +121,9 @@ function initWorld() {
   for(var i = 0; i < NUM_PARTICLES; i++) {
 
     // create a particle with random position values, -250 -> 250
-    var pX = Math.random() * 500 - 250,
-        pY = Math.random() * 500 - 250,
-        pZ = Math.random() * 500 - 250;
+    var pX = Math.random() * WORLD_SIZE - (WORLD_SIZE / 2),
+        pY = Math.random() * WORLD_SIZE - (WORLD_SIZE / 2),
+        pZ = Math.random() * WORLD_SIZE - (WORLD_SIZE / 2);
 
     var particle = new THREE.Vector3(pX, pY, pZ);
     particle.name = 'particle-' + i;
@@ -141,36 +144,6 @@ function initWorld() {
   }
   attributes.customColor.needsUpdate = true;
 
-  /*var shaderMaterial = new THREE.ShaderMaterial( {
-
-    uniforms: uniforms,
-    attributes: attributes,
-    vertexShader: document.getElementById( 'vertexshader' ).textContent,
-    // fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
-    depthTest: false
-  });*/
-
-
-  /*var radius = 150;
-  var vertices = pointCloudGeometry.vertices;
-  var values_size = attributes.size.value;
-  var values_color = attributes.ca.value;
-
-  for( var i = 0; i < vertices.length; i++ ) {
-
-    // custom shader colors for particles
-    values_size[i] = PARTICLE_SIZE;
-    values_color[i] = new THREE.Color( 1, 1, 1 );
-
-    // values_color[i] = new THREE.Color( 0.01 + 0.1 * ( i / NUM_PARTICLES ), 0.99, 0 );
-
-
-    values_color[ i ].setHSL( 0.01 + 0.1 * ( i / NUM_PARTICLES ), 0.99, ( vertices[ i ].y + radius ) / ( 2 * radius ) );
-
-  }*/
-
-
-
 
   // create the particle system
   pointCloud = new THREE.PointCloud(pointCloudGeometry, newShaderMaterial);
@@ -178,21 +151,17 @@ function initWorld() {
   pointCloud.dynamic = true;
 
 
-
-  // setAttributeNeedsUpdateFlags();
-
   scene.add(camera);
   scene.add(pointCloud);
 
   window.addEventListener( 'resize', onWindowResize, false );
-  window.addEventListener( 'mousemove', onDocumentMouseMove, false );
+  // window.addEventListener( 'mousemove', onDocumentMouseMove, false );
 
   // window.addEventListener( 'mousedown', onDocumentMouseDown, false );
 }
 
 function setAttributeNeedsUpdateFlags() {
   attributes.ca.needsUpdate = true;
-  // attributes.locked.needsUpdate = true;
   attributes.size.needsUpdate = true;
 }
 
@@ -235,7 +204,7 @@ function onDocumentMouseMove( event ) {
 function highlightParticle(p) {
   var particle = pointCloudGeometry.vertices[p.index];
   intersectedIndex = p.index;
-  console.log(intersectedIndex);
+  // console.log(intersectedIndex);
   // console.log(particle.name, particle.payload);
 }
 
