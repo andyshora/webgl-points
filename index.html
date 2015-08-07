@@ -19,13 +19,13 @@
 
       void main() {
 
-          vAlpha = alpha;
+        vAlpha = alpha;
 
-          vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+        vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
 
-          gl_PointSize = size;
+        gl_PointSize = size;
 
-          gl_Position = projectionMatrix * mvPosition;
+        gl_Position = projectionMatrix * mvPosition;
 
       }
 
@@ -39,8 +39,8 @@
 
       void main() {
 
-          gl_FragColor = vec4(color, 1);
-          gl_FragColor.a *= vAlpha;
+        gl_FragColor = vec4(color, 1);
+        gl_FragColor.a *= vAlpha;
 
       }
 
@@ -48,7 +48,6 @@
   <link rel="stylesheet" href="app/css/main.css">
 </head>
 <body>
-
   <div id="WebGLCanvas"></div>
   <script src="app/js/detector.js"></script>
   <script src="app/js/main.js"></script>

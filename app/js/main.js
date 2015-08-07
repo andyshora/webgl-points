@@ -14,7 +14,7 @@ window.requestAnimFrame = (function(){
     };
   })();
 
-var NUM_PARTICLES = 1000;
+var NUM_PARTICLES = 10;
 var PARTICLE_SIZE = 1;
 
 // set the scene size
@@ -54,17 +54,6 @@ function initWorld() {
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
 
-  // custom shader
-  /*attributes = {
-    size: { type: 'f', value: [] },
-    ca: { type: 'c', value: [] }
-  };
-
-  uniforms = {
-    color: { type: "c", value: new THREE.Color( 0xffffff ) },
-    texture: { type: "t", value: 0, texture: THREE.ImageUtils.loadTexture('app/textures/sprites/disc.png') }
-  };*/
-
   attributes = {
     alpha: { type: 'f', value: [] },
     customColor: { type: 'c', value: [] },
@@ -100,6 +89,7 @@ function initWorld() {
   renderer.setSize(WIDTH, HEIGHT);
 
   pointCloudGeometry = new THREE.Geometry();
+  pointCloudGeometry.dynamic = true;
 
   /*var pointCloudMaterial = new THREE.PointCloudMaterial({
     color: 0xffffff,
@@ -211,23 +201,55 @@ function highlightParticle(p) {
 
 function render() {
 
-  /*for( var i = 0; i < attributes.alpha.value.length; i++ ) {
-
-      // dynamically change alphas
-      attributes.alpha.value[ i ] *= 0.99;
-
-      if ( attributes.alpha.value[ i ] < 0.2 ) {
-          attributes.alpha.value[ i ] = Math.abs( pointCloudGeometry.vertices[ i ].x / 100 );
-      }
-
+  if (updateVertices) {
+    console.log('updateVertices');
+    pointCloudGeometry.verticesNeedUpdate = true;
+    updateVertices = false;
   }
-
-  attributes.alpha.needsUpdate = true;*/
 
   raycaster.setFromCamera( mouse, camera );
 
   renderer.render( scene, camera );
 }
+
+function addPoints() {
+  console.log('addPoints');
+
+  var n = 1000;
+
+  pointCloudGeometry.verticesNeedUpdate = true;
+  for(var i = NUM_PARTICLES; i < NUM_PARTICLES + n; i++) {
+
+    // create a particle with random position values, -250 -> 250
+    var pX = Math.random() * WORLD_SIZE - (WORLD_SIZE / 2),
+        pY = Math.random() * WORLD_SIZE - (WORLD_SIZE / 2),
+        pZ = Math.random() * WORLD_SIZE - (WORLD_SIZE / 2);
+
+    var particle = new THREE.Vector3(pX, pY, pZ);
+    particle.name = 'particle-' + i;
+    particle.payload = { data: 456 };
+
+    // add it to the particle system
+    pointCloudGeometry.vertices.push(particle);
+
+    // set alpha based on distance to (local) y-axis
+    // attributes.alpha.value[ i ] = .2 + Math.abs( (pointCloudGeometry.vertices[ i ].x + 250) / 2000 );
+    attributes.alpha.value[ i ] = 1;
+
+    attributes.customColor.value[i] = new THREE.Color( 0x00ffff );
+
+    attributes.customColor.value[ i ] = new THREE.Color( 0xffffff );
+    // attributes.customColor.value[ i ].setRGB(Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), Math.floor(Math.random() * 255));
+
+  }
+  attributes.customColor.needsUpdate = true;
+  attributes.alpha.needsUpdate = true;
+
+  console.log(pointCloud.geometry.vertices.length);
+
+  updateVertices = true;
+}
+var updateVertices = false;
 
 // attach the render-supplied DOM element
 document.getElementById('WebGLCanvas').appendChild(renderer.domElement);
