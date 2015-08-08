@@ -130,9 +130,9 @@ function initWorld() {
     // attributes.alpha.value[ i ] = .2 + Math.abs( (pointCloudGeometry.vertices[ i ].x + 250) / 2000 );
     attributes.alpha.value[ i ] = 1;
 
-    attributes.customColor.value[i] = new THREE.Color( 0x00ffff );
+    attributes.customColor.value[i] = (i % 2 === 1) ? new THREE.Color( 0x00ffff ) : new THREE.Color( 0xffff00 );
 
-    attributes.customColor.value[ i ] = new THREE.Color( 0xffffff );
+    // attributes.customColor.value[ i ] = new THREE.Color( 0xffffff );
     // attributes.customColor.value[ i ].setRGB(Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), Math.floor(Math.random() * 255));
 
   }
