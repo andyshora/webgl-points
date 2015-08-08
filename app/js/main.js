@@ -14,14 +14,14 @@ window.requestAnimFrame = (function(){
     };
   })();
 
-var NUM_PARTICLES = 10;
+var NUM_PARTICLES = 10000;
 var PARTICLE_SIZE = 1;
 
 // set the scene size
 var WIDTH = window.innerWidth,
     HEIGHT = window.innerHeight;
 
-var WORLD_SIZE = 100;
+var WORLD_SIZE = 10000;
 
 // set some camera attributes
 var VIEW_ANGLE = 60,
@@ -29,7 +29,7 @@ var VIEW_ANGLE = 60,
     FAR = WORLD_SIZE * 10;
 
 
-var scene, renderer, camera, controls, raycaster;
+var scene, renderer, camera, controls, raycaster, stats;
 
 var pointCloud, pointCloudGeometry;
 
@@ -53,6 +53,9 @@ function initWorld() {
   // for collision detection with mouse vector
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
+  stats = new Stats();
+  stats.domElement.style.position = 'absolute';
+  stats.domElement.style.top = '0';
 
   attributes = {
     alpha: { type: 'f', value: [] },
@@ -118,7 +121,7 @@ function initWorld() {
 
     var particle = new THREE.Vector3(pX, pY, pZ);
     particle.name = 'particle-' + i;
-    particle.payload = { data: 123 };
+    particle.payload = { data: 123, distanceToMove: WORLD_SIZE / 2 };
 
     // add it to the particle system
     pointCloudGeometry.vertices.push(particle);
@@ -168,10 +171,18 @@ function onWindowResize() {
 
 }
 
+var pointsToMove = false;
+
 function animate() {
 
   requestAnimationFrame( animate );
   controls.update();
+
+  stats.update();
+
+  if (pointsToMove) {
+    movePoints();
+  }
 
   render();
 
@@ -202,7 +213,6 @@ function highlightParticle(p) {
 function render() {
 
   if (updateVertices) {
-    console.log('updateVertices');
     pointCloudGeometry.verticesNeedUpdate = true;
     updateVertices = false;
   }
@@ -210,6 +220,39 @@ function render() {
   raycaster.setFromCamera( mouse, camera );
 
   renderer.render( scene, camera );
+}
+
+function movePoints() {
+  // console.log('movePoints');
+
+  // var SECTION_SIZE = WORLD_SIZE / 4;
+
+  var numLeftToMove = 0;
+
+  for (var i = 0; i < NUM_PARTICLES; i++) {
+
+    var dir = (i % 2 === 1) ? 1 : -1;
+
+    var distanceToMove = pointCloudGeometry.vertices[i].payload.distanceToMove;
+
+    if (distanceToMove > 0) {
+      var pX = pointCloudGeometry.vertices[i].x + (dir * 10),
+          pY = pointCloudGeometry.vertices[i].y + (dir * 10),
+          pZ = pointCloudGeometry.vertices[i].z + (dir * 10);
+
+      numLeftToMove++;
+
+      pointCloudGeometry.vertices[i].payload.distanceToMove -= 10;
+
+      // update position of particle
+      pointCloudGeometry.vertices[i].set(pX, pY, pZ);
+    }
+
+  }
+
+  pointsToMove = numLeftToMove > 0;
+
+  updateVertices = true;
 }
 
 function addPoints() {
@@ -245,11 +288,10 @@ function addPoints() {
   attributes.customColor.needsUpdate = true;
   attributes.alpha.needsUpdate = true;
 
-  console.log(pointCloud.geometry.vertices.length);
-
   updateVertices = true;
 }
 var updateVertices = false;
 
 // attach the render-supplied DOM element
 document.getElementById('WebGLCanvas').appendChild(renderer.domElement);
+document.body.appendChild( stats.domElement );
