@@ -64,7 +64,7 @@ function initWorld() {
   };
 
   uniforms = {
-    color: { type: 'c', value: new THREE.Color( 0xff00ff ) },
+    color: { type: 'c', value: new THREE.Color( 0xffff00 ) },
     size: { type: 'f', value: 2 }
   };
 
@@ -231,18 +231,20 @@ function movePoints() {
 
   for (var i = 0; i < NUM_PARTICLES; i++) {
 
-    var dir = (i % 2 === 1) ? 1 : -1;
 
     var distanceToMove = pointCloudGeometry.vertices[i].payload.distanceToMove;
 
+    var dir = (i % 2 === 1) ? 1 : -1;
+    var r = Math.round(Math.random() * i * 0.01);
+
     if (distanceToMove > 0) {
-      var pX = pointCloudGeometry.vertices[i].x + (dir * 10),
-          pY = pointCloudGeometry.vertices[i].y + (dir * 10),
-          pZ = pointCloudGeometry.vertices[i].z + (dir * 10);
+      var pX = pointCloudGeometry.vertices[i].x + (dir * r),
+          pY = pointCloudGeometry.vertices[i].y + (dir * r),
+          pZ = pointCloudGeometry.vertices[i].z + (dir * r);
 
       numLeftToMove++;
 
-      pointCloudGeometry.vertices[i].payload.distanceToMove -= 10;
+      pointCloudGeometry.vertices[i].payload.distanceToMove -= r;
 
       // update position of particle
       pointCloudGeometry.vertices[i].set(pX, pY, pZ);

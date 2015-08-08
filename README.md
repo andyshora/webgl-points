@@ -9,3 +9,7 @@
 - Attributes are variables associated with each vertex---for instance, the vertex position, face normal, and vertex color are all examples of data that would be stored in attributes. Attributes can only be accessed within the vertex shader.
 
 - Varyings are variables that are passed from the vertex shader to the fragment shader. For each fragment, the value of each varying will be smoothly interpolated from the values of adjacent vertices.
+
+## Notes
+
+- If you cannot dyamically add particles, add some extras to use with alpha = 0, and activate them when needed. May be expensive to extend buffer size.

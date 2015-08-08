@@ -6,6 +6,7 @@
   <title>**** WebGL Points</title>
   <meta name="description" content="{{description}}">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="app/bower_components/jquery/dist/jquery.min.js"></script>
   <script src="app/bower_components/three.js/three.js"></script>
   <script src="app/bower_components/three.js-controls/src/OrbitControls.js"></script>
   <script src="app/bower_components/underscore/underscore-min.js"></script>
@@ -49,8 +50,20 @@
 </head>
 <body>
   <div id="WebGLCanvas"></div>
+
+  <div class="controls-help">
+    <div class="controls-trigger">Controls Help</div>
+    <ul>
+      <li><strong>Orbit</strong> - left mouse / touch: one finger move</li>
+      <li><strong>Zoom</strong> - middle mouse, or mousewheel / touch: two finger spread or squish</li>
+      <li><strong>Pan</strong> - right mouse, or arrow keys / touch: three finter swipe</li>
+    </ul>
+  </div>
+
   <script src="app/js/stats.js"></script>
   <script src="app/js/detector.js"></script>
   <script src="app/js/main.js"></script>
+  <script src="app/js/ui.js"></script>
+
 </body>
 </html>
