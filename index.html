@@ -1,16 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="WorldViewerApp">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>**** WebGL Points</title>
   <meta name="description" content="{{description}}">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="app/bower_components/jquery/dist/jquery.min.js"></script>
+  <script src="app/bower_components/angular/angular.min.js"></script>
   <script src="app/bower_components/three.js/three.js"></script>
   <script src="app/bower_components/klass/klass.min.js"></script>
   <script src="app/bower_components/three.js-controls/src/OrbitControls.js"></script>
-  <script src="app/bower_components/underscore/underscore-min.js"></script>
 
   <script type="x-shader/x-vertex" id="vertexshader">
 
@@ -60,11 +59,15 @@
   </script>
   <link rel="stylesheet" href="app/css/main.css">
 </head>
-<body>
+<body ng-controller="MainCtrl">
   <div id="WebGLCanvas"></div>
 
-  <div class="controls-help">
-    <div class="controls-trigger">Controls Help</div>
+  <div class="point-details" ng-show="point.name">
+    <p>Name: {{ point.name }}, x: {{ point.x }}, y: {{ point.y }}, z: {{ point.z }}</p>
+  </div>
+
+  <div class="controls-help" ng-class="{'controls-help--open':controlsOpen}">
+    <div class="controls-trigger" ng-click="controlsOpen=!controlsOpen">Controls Help</div>
     <ul>
       <li><strong>Orbit</strong> - left mouse / touch: one finger move</li>
       <li><strong>Zoom</strong> - middle mouse, or mousewheel / touch: two finger spread or squish</li>

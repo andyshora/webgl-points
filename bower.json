@@ -2,9 +2,8 @@
   "name": "webgl-points",
   "dependencies": {
     "klass": "~1.4.1",
-    "jquery": "~2.1.4",
     "three.js": "~0.71.0",
     "three.js-controls": "~0.0.67",
-    "underscore": "~1.8.3"
+    "angular": "~1.4.3"
   }
 }

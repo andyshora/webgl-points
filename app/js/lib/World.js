@@ -3,7 +3,6 @@ var stop = false;
 var World = klass({
   initialize: function(name, opts) {
 
-    console.log('initializing new world', name, opts);
     this.name = name;
 
     this.defaultOptions = {
@@ -16,7 +15,8 @@ var World = klass({
       'debug': { type: 'boolean', defaultValue: false },
       'vertexShaderId': { type: 'string', defaultValue: 'vertexshader' },
       'fragmentShaderId': { type: 'string', defaultValue: 'fragmentshader' },
-      'containerId': { type: 'string', defaultValue: 'WebGLCanvas' }
+      'containerId': { type: 'string', defaultValue: 'WebGLCanvas' },
+      'onPointSelected': { type: 'function', defaultValue: null }
     };
 
     this.setOptions(opts);
@@ -68,7 +68,6 @@ var World = klass({
       this.cameraOptions.near,
       this.cameraOptions.far
     );
-    console.log(this.camera);
 
     // for collision detection with mouse vector
     this.raycaster = new THREE.Raycaster();
@@ -290,9 +289,6 @@ var World = klass({
       timeElapsed += +new Date() - startTime;
     }
 
-    if (numPointsUpdatedThisFrame) {
-      console.log('numPointsUpdatedThisFrame', numPointsUpdatedThisFrame);
-    }
     this.updateVertices = true;
 
     // if there are new points to add, do what you can in 10ms
@@ -380,7 +376,12 @@ var World = klass({
   },
   showPointDetails: function(i) {
     var p = this.pointCloudGeometry.vertices[i];
-    console.log(p);
+
+    if (this.options.onPointSelected) {
+      this.options.onPointSelected.apply(this, [p]);
+
+    }
+
   },
   testAddPoints: function () {
     console.log('testAddPoints');
@@ -428,17 +429,3 @@ var World = klass({
     this.checkForIntersections = false;
   }
 });
-
-var world = new World('Andy\'s World', {
-  numPoints: 1000,
-  numReservePoints: 1000,
-  size: 10000,
-  pointSize: 5,
-  showStats: true,
-  vertexShaderId: 'vertexshader',
-  fragmentShaderId: 'fragmentshader',
-  containerId: 'WebGLCanvas',
-  debug: true
-});
-
-

@@ -32,3 +32,14 @@ body {
 .controls-help--open {
   bottom: 0;
 }
+
+.point-details {
+  position: absolute;
+  display: block;
+  top: 0;
+  right: 0;
+  z-index: 3;
+  width: 80%;
+  height: 90px;
+  color: white;
+}
