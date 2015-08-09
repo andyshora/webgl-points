@@ -61,6 +61,7 @@ var World = klass({
     // create a WebGL renderer, camera, and a scene
     this.scene = new THREE.Scene();
     this.renderer = new THREE.WebGLRenderer({ clearColor: 0x000000, clearAlpha: 1 });
+
     this.camera = new THREE.PerspectiveCamera(
       this.cameraOptions.viewAngle,
       this.sceneOptions.width / this.sceneOptions.height,
@@ -71,7 +72,7 @@ var World = klass({
 
     // for collision detection with mouse vector
     this.raycaster = new THREE.Raycaster();
-    this.raycaster.params.PointCloud.threshold = 100;
+    this.raycaster.params.PointCloud.threshold = this.options.size / 100;
 
     this.mouse = new THREE.Vector2();
 
@@ -84,16 +85,17 @@ var World = klass({
     this.shaderAttributes = {
       alpha: { type: 'f', value: [] },
       pointSize: { type: 'f', value: [] },
-      customColor: { type: 'c', value: [] },
-      texture1: {
-        type: "t",
-        value: THREE.ImageUtils.loadTexture('app/textures/sprites/ball.png')
-      }
+      customColor: { type: 'c', value: [] }
     };
 
     this.shaderUniforms = {
-      color: { type: 'c', value: new THREE.Color( 0xffff00 ) },
-      size: { type: 'f', value: this.options.pointSize }
+      worldSize: { type: 'f', value: this.options.size * 1.0 },
+      color: { type: 'c', value: new THREE.Color( 0xffffff ) },
+      size: { type: 'f', value: this.options.pointSize },
+      pointTexture: {
+        type: "t",
+        value: THREE.ImageUtils.loadTexture('app/textures/sprites/ball.png')
+      }
     };
 
     // point system material
@@ -104,7 +106,8 @@ var World = klass({
       vertexShader:   document.getElementById(this.options.vertexShaderId).textContent,
       fragmentShader: document.getElementById(this.options.fragmentShaderId).textContent,
       transparent: true,
-      vertexColor: true
+      vertexColor: true,
+      depthTest: false // removes bg overlap
     });
 
     // the camera starts at 0,0,0 so pull it back
@@ -331,6 +334,13 @@ var World = klass({
         this.checkForIntersections = false;
 
         var intersections = this.raycaster.intersectObjects([ this.pointCloud ]);
+
+        // select all intersected points
+        // for (var i = 0; i < intersections.length; i++) {
+        //   this.updatePoint(intersections[i].index, null, null, null, null, null, this.options.pointSize * 5);
+        // }
+
+        // select only first intersected point
         var intersection = ( intersections.length ) > 0 ? intersections[ 0 ] : null;
         if (intersection) {
           console.log('intersection', intersection);
@@ -344,7 +354,8 @@ var World = klass({
           this.lastActiveIntersection = this.activeIntersection = intersection;
 
           // update new intersected particle
-          this.updatePoint(intersection.index, null, null, null, null, null, 10.0);
+          this.updatePoint(intersection.index, null, null, null, null, null, this.options.pointSize * 5);
+          this.showPointDetails(intersection.index);
         }
       }
 
@@ -359,8 +370,12 @@ var World = klass({
     this.renderer.render(this.scene, this.camera);
 
   },
-  addTestPoints: function () {
-    console.log('addTestPoints');
+  showPointDetails: function(i) {
+    var p = this.pointCloudGeometry.vertices[i];
+    console.log(p);
+  },
+  testAddPoints: function () {
+    console.log('testAddPoints');
 
     var payload = { data: 123, distanceToMove: 500 };
 
@@ -375,6 +390,8 @@ var World = klass({
     this.updatePointsQueue.push({ i: i, x: x, y: y, z: z, payload: payload, color: color, size: size })
   },
   testMovePoints: function(n) {
+    console.log('testMovePoints');
+
     for (var i = 0; i < n; i++) {
       var pX = Math.random() * this.options.size / 10 - (this.options.size / 10 / 2),
           pY = Math.random() * this.options.size / 10 - (this.options.size / 10 / 2),
@@ -407,8 +424,8 @@ var World = klass({
 var world = new World('Andy\'s World', {
   numPoints: 1000,
   numReservePoints: 1000,
-  size: 10000,
-  pointSize: 2.0,
+  size: 1000,
+  pointSize: 5,
   showStats: true,
   vertexShaderId: 'vertexshader',
   fragmentShaderId: 'fragmentshader',

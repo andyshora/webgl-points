@@ -29,7 +29,6 @@
         vSize = pointSize;
 
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-
         gl_PointSize = pointSize;
 
         gl_Position = projectionMatrix * mvPosition;
@@ -41,6 +40,8 @@
   <script type="x-shader/x-fragment" id="fragmentshader">
 
       uniform vec3 color;
+      uniform sampler2D pointTexture;
+      uniform float worldSize;
 
       varying float vAlpha;
       varying float vSize;
@@ -48,9 +49,14 @@
 
       void main() {
 
-        gl_FragColor = vec4(vColor, 1);
-        gl_FragColor.a *= vAlpha;
-        // gl_PointSize = vSize;
+        vec4 outColor = texture2D( pointTexture, gl_PointCoord );
+        gl_FragColor = outColor * vec4( color * vColor.xyz, vAlpha );
+
+        float depth = gl_FragCoord.z / gl_FragCoord.w;
+        const vec3 fogColor = vec3( 0.1 );
+
+        float fogFactor = smoothstep( worldSize * 0.75, worldSize * 4.0, depth );
+        gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );
 
       }
 
