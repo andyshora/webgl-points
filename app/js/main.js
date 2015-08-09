@@ -41,7 +41,11 @@ var intersectedIndex = -1;
 // for custom shaders
 var attributes, uniforms;
 
+// for adding points without reallocating buffers
 var reserveParticlesUsed = 0;
+var newParticlesQueue = [];
+
+var updateVertices = false;
 
 initWorld();
 animate();
@@ -56,9 +60,10 @@ function initWorld() {
   // for collision detection with mouse vector
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
-  stats = new Stats();
-  stats.domElement.style.position = 'absolute';
-  stats.domElement.style.top = '0';
+
+  // stats = new Stats();
+  // stats.domElement.style.position = 'absolute';
+  // stats.domElement.style.top = '0';
 
   attributes = {
     alpha: { type: 'f', value: [] },
@@ -191,7 +196,7 @@ function animate() {
   requestAnimationFrame( animate );
   controls.update();
 
-  stats.update();
+  // stats.update();
 
   if (pointsToMove) {
     movePoints();
@@ -228,6 +233,40 @@ function render() {
   if (updateVertices) {
     pointCloudGeometry.verticesNeedUpdate = true;
     updateVertices = false;
+  }
+
+  var startTime = +new Date();
+  var timeElapsed = 0;
+  var particleToAdd = null;
+
+  var numParticlesAddedThisFrame = 0;
+
+  // if there are new points to add, do what you can in 10ms
+  while ((timeElapsed < 10) && (particleToAdd = newParticlesQueue.shift())) {
+
+    console.log('adding particle', particleToAdd, timeElapsed);
+
+    var i = NUM_PARTICLES + reserveParticlesUsed;
+
+    if (i >= NUM_PARTICLES + NUM_RESERVE_PARTICLES) {
+      console.error('No more reserve particles to use.');
+      break;
+    }
+
+    // add it to the particle system
+    pointCloudGeometry.vertices[i].set(particleToAdd.x, particleToAdd.y, particleToAdd.z);
+    reserveParticlesUsed++;
+
+    // show as visible
+    attributes.alpha.value[i] = 1;
+
+    attributes.customColor.needsUpdate = true;
+    attributes.alpha.needsUpdate = true;
+    updateVertices = true;
+
+    numParticlesAddedThisFrame++;
+    timeElapsed += +new Date() - startTime;
+    console.log('numParticlesAddedThisFrame', numParticlesAddedThisFrame);
   }
 
   raycaster.setFromCamera( mouse, camera );
@@ -270,7 +309,13 @@ function movePoints() {
   updateVertices = true;
 }
 
-function addPoints() {
+function addPoint(pX, pY, pZ) {
+  // use newParticlesQueue
+  newParticlesQueue.push({ x: pX, y: pY, z: pZ });
+}
+
+/* depreciated */
+function addPointsLegacy() {
   console.log('addPoints');
 
   var n = 500;
@@ -298,8 +343,17 @@ function addPoints() {
   updateVertices = true;
 
 }
-var updateVertices = false;
+
+function addTestParticles() {
+  for (var i = 0; i < 100; i++) {
+    newParticlesQueue.push({ x: (Math.cos(i) + 1) * 1000, y: (Math.sin(i) + 1) * 1000, z: 0 });
+  }
+}
+
 
 // attach the render-supplied DOM element
 document.getElementById('WebGLCanvas').appendChild(renderer.domElement);
-document.body.appendChild( stats.domElement );
+// document.body.appendChild( stats.domElement );
+//
+//
+addTestParticles();
