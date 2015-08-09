@@ -15,7 +15,7 @@ window.requestAnimFrame = (function(){
   })();
 
 var NUM_PARTICLES = 1000;
-var NUM_RESERVE_PARTICLES = 1000;
+var NUM_RESERVE_PARTICLES = 10000;
 var PARTICLE_SIZE = 1;
 
 // set the scene size
@@ -46,6 +46,7 @@ var reserveParticlesUsed = 0;
 var newParticlesQueue = [];
 
 var updateVertices = false;
+
 
 initWorld();
 animate();
@@ -188,8 +189,6 @@ function onWindowResize() {
   render();
 
 }
-
-var pointsToMove = false;
 
 function animate() {
 
