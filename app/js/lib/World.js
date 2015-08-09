@@ -9,10 +9,11 @@ var World = klass({
     this.defaultOptions = {
       'name': { type: 'string', defaultValue: 'Test World' },
       'size': { type: 'number', defaultValue: 10000 },
-      'numParticles': { type: 'number', defaultValue: 1000 },
-      'numReserveParticles': { type: 'number', defaultValue: 1000 },
-      'particleSize': { type: 'number', defaultValue: 10000 },
+      'numPoints': { type: 'number', defaultValue: 1000 },
+      'numReservePoints': { type: 'number', defaultValue: 1000 },
+      'pointSize': { type: 'number', defaultValue: 10000 },
       'showStats': { type: 'boolean', defaultValue: false },
+      'debug': { type: 'boolean', defaultValue: false },
       'vertexShaderId': { type: 'string', defaultValue: 'vertexshader' },
       'fragmentShaderId': { type: 'string', defaultValue: 'fragmentshader' },
       'containerId': { type: 'string', defaultValue: 'WebGLCanvas' }
@@ -26,34 +27,25 @@ var World = klass({
       height: window.innerHeight
     };
 
-    // set some camera attributes
-
-
-    // this.scene = null;
-    // this.renderer = null;
-    // this.camera = null;
-    // this.controls = null;
-    // this.raycaster = null;
+    // GPU stats
     this.stats = null;
 
-    // for mouse intersection - interacting with particles
+    // for mouse intersection - interacting with points
     this.mouse = { x: 0, y: 0 };
     this.intersectedIndex = -1;
 
     // for adding points without reallocating buffers
-    this.reserveParticlesUsed = 0;
-    this.newParticlesQueue = [];
+    this.reservePointsUsed = 0;
+    this.newPointsQueue = [];
 
     this.updateVertices = false;
+    this.pointsToMove = false;
 
     this.cameraOptions = {
       viewAngle: 60,
       near: 1,
       far: this.options.size * 10
     };
-
-    this.pointsToMove = false;
-
 
     // Check for WebGL Support
     if (!Detector.webgl) {
@@ -93,10 +85,10 @@ var World = klass({
 
     this.shaderUniforms = {
       color: { type: 'c', value: new THREE.Color( 0xffff00 ) },
-      size: { type: 'f', value: this.options.particleSize }
+      size: { type: 'f', value: this.options.pointSize }
     };
 
-    // particle system material
+    // point system material
     // using custom shaders so rendering changes run in parallel on the GPU
     var shaderMaterial = new THREE.ShaderMaterial( {
       uniforms:       this.shaderUniforms,
@@ -122,22 +114,22 @@ var World = klass({
     this.pointCloudGeometry = new THREE.Geometry();
     this.pointCloudGeometry.dynamic = true;
 
-    // console.log('creating', this.options.numParticles, 'particles');
+    // console.log('creating', this.options.numPoints, 'points');
 
-    // now create the individual particles
-    for (var i = 0; i < this.options.numParticles; i++) {
+    // now create the individual points
+    for (var i = 0; i < this.options.numPoints; i++) {
 
-      // create a particle with random position values, -250 -> 250
+      // create a point with random position values, -250 -> 250
       var pX = Math.random() * this.options.size - (this.options.size / 2),
           pY = Math.random() * this.options.size - (this.options.size / 2),
           pZ = Math.random() * this.options.size - (this.options.size / 2);
 
-      var particle = new THREE.Vector3(pX, pY, pZ);
-      particle.name = 'particle-' + i;
-      particle.payload = { data: 123, distanceToMove: this.options.size / 2 };
+      var point = new THREE.Vector3(pX, pY, pZ);
+      point.name = 'point-' + i;
+      point.payload = { data: 123, distanceToMove: this.options.size / 2 };
 
-      // add it to the particle system
-      this.pointCloudGeometry.vertices.push(particle);
+      // add it to the point system
+      this.pointCloudGeometry.vertices.push(point);
       this.shaderAttributes.alpha.value[i] = 1;
 
       this.shaderAttributes.customColor.value[i] = (i % 2 === 1)
@@ -145,20 +137,20 @@ var World = klass({
         : new THREE.Color( 0xff69b4 );
     }
 
-    // create reserve particles which will become visible
+    // create reserve points which will become visible
     // when we need some added dynamically
-    for (var i = this.options.numParticles; i < this.options.numParticles + this.options.numReserveParticles; i++) {
+    for (var i = this.options.numPoints; i < this.options.numPoints + this.options.numReservePoints; i++) {
 
       var pX = 0,
           pY = 0,
           pZ = 0;
 
-      var particle = new THREE.Vector3(pX, pY, pZ);
-      particle.name = 'particle-' + i;
-      particle.payload = { data: 0, distanceToMove: 0 };
+      var point = new THREE.Vector3(pX, pY, pZ);
+      point.name = 'point-' + i;
+      point.payload = { data: 0, distanceToMove: 0 };
 
-      // add it to the particle system
-      this.pointCloudGeometry.vertices.push(particle);
+      // add it to the point system
+      this.pointCloudGeometry.vertices.push(point);
       this.shaderAttributes.alpha.value[i] = 0;
 
       this.shaderAttributes.customColor.value[i] = new THREE.Color( 0xffff00 );
@@ -168,17 +160,17 @@ var World = klass({
     this.shaderAttributes.alpha.needsUpdate = true;
     this.updateVertices = true;
 
-    // create the particle system
+    // create the point system
     this.pointCloud = new THREE.PointCloud(this.pointCloudGeometry, shaderMaterial);
-    this.pointCloud.sortParticles = true;
+    this.pointCloud.sortPoints = true;
     this.pointCloud.dynamic = true;
 
     this.scene.add(this.camera);
     this.scene.add(this.pointCloud);
 
     document.getElementById(this.options.containerId).appendChild(this.renderer.domElement);
+
     if (this.options.showStats) {
-      console.log(this.stats.domElement);
       document.body.appendChild(this.stats.domElement);
     }
     // window.addEventListener( 'mousemove', onDocumentMouseMove, false );
@@ -248,35 +240,33 @@ var World = klass({
     // flags to ensure we do work in this frame's budget only
     var startTime = +new Date(),
         timeElapsed = 0,
-        particleToAdd = null,
-        numParticlesAddedThisFrame = 0;
+        pointToAdd = null,
+        numPointsAddedThisFrame = 0;
 
     // if there are new points to add, do what you can in 10ms
-    while ((timeElapsed < 10) && this.newParticlesQueue && (particleToAdd = this.newParticlesQueue.shift())) {
+    while ((timeElapsed < 10) && this.newPointsQueue && (pointToAdd = this.newPointsQueue.shift())) {
 
-      console.log('adding particle', particleToAdd, timeElapsed);
+      var i = this.options.numPoints + this.reservePointsUsed;
 
-      var i = this.options.numParticles + this.reserveParticlesUsed;
-
-      if (i >= this.options.numParticles + this.options.numReserveParticles) {
-        console.error('No more reserve particles to use. Implement dynamic buffer allocation.');
+      if (i >= this.options.numPoints + this.options.numReservePoints) {
+        console.error('No more reserve points to use. Implement dynamic buffer allocation.');
         break;
       }
 
-      // add it to the particle system
-      this.pointCloudGeometry.vertices[i].set(particleToAdd.x, particleToAdd.y, particleToAdd.z);
-      this.reserveParticlesUsed++;
+      // add it to the point system
+      this.pointCloudGeometry.vertices[i].set(pointToAdd.x, pointToAdd.y, pointToAdd.z);
+      this.pointCloudGeometry.vertices[i].payload = pointToAdd.payload;
+      this.reservePointsUsed++;
 
       // show as visible
       this.shaderAttributes.alpha.value[i] = 1;
-
       this.shaderAttributes.customColor.needsUpdate = true;
       this.shaderAttributes.alpha.needsUpdate = true;
       this.updateVertices = true;
 
-      numParticlesAddedThisFrame++;
+      numPointsAddedThisFrame++;
       timeElapsed += +new Date() - startTime;
-      console.log('numParticlesAddedThisFrame', numParticlesAddedThisFrame);
+      console.log('numPointsAddedThisFrame', numPointsAddedThisFrame);
     }
 
     if (!this.raycaster) {
@@ -295,32 +285,50 @@ var World = klass({
     this.renderer.render(this.scene, this.camera);
 
   },
-  movePoints: function () {},
   addTestPoints: function () {
     console.log('addTestPoints');
+
+    var payload = { data: 123, distanceToMove: 500 };
+
     for (var i = 0; i < 100; i++) {
-      this.newParticlesQueue.push({ x: (Math.cos(i) + 1) * 1000, y: (Math.sin(i) + 1) * 1000, z: 0 });
+      this.addPoint((Math.cos(i) + 1) * 1000, (Math.sin(i) + 1) * 1000, 0, payload);
+    }
+  },
+  addPoint: function(x, y, z, payload) {
+    this.newPointsQueue.push({ x: x, y: y, z: z, payload: payload });
+  },
+  movePoint: function (i, x, y, z) {
+    this.pointCloudGeometry.vertices[i].set(x, y, z);
+    this.updateVertices = true;
+  },
+  testMovePoints: function(n) {
+    for (var i = 0; i < n; i++) {
+      var pX = Math.random() * this.options.size / 10 - (this.options.size / 10 / 2),
+          pY = Math.random() * this.options.size / 10 - (this.options.size / 10 / 2),
+          pZ = Math.random() * this.options.size / 10 - (this.options.size / 10 / 2);
+
+      this.movePoint(i, pX, pY, pZ);
     }
   },
   onWindowResize: function() {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
 
-    this.renderer.setSize( window.innerWidth, window.innerHeight );
-
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.render();
   }
 });
 
 var world = new World('Andy\'s World', {
-  numParticles: 1000,
-  numReserveParticles: 1000,
+  numPoints: 1000,
+  numReservePoints: 1000,
   size: 10000,
-  particleSize: 2,
+  pointSize: 2,
   showStats: true,
   vertexShaderId: 'vertexshader',
   fragmentShaderId: 'fragmentshader',
-  containerId: 'WebGLCanvas'
+  containerId: 'WebGLCanvas',
+  debug: true
 });
 
 window.addEventListener('resize', world.onWindowResize.bind(world), false);
