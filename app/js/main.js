@@ -14,7 +14,8 @@ window.requestAnimFrame = (function(){
     };
   })();
 
-var NUM_PARTICLES = 10000;
+var NUM_PARTICLES = 1000;
+var NUM_RESERVE_PARTICLES = 1000;
 var PARTICLE_SIZE = 1;
 
 // set the scene size
@@ -39,6 +40,8 @@ var intersectedIndex = -1;
 
 // for custom shaders
 var attributes, uniforms;
+
+var reserveParticlesUsed = 0;
 
 initWorld();
 animate();
@@ -125,19 +128,29 @@ function initWorld() {
 
     // add it to the particle system
     pointCloudGeometry.vertices.push(particle);
+    attributes.alpha.value[i] = 1;
 
-    // set alpha based on distance to (local) y-axis
-    // attributes.alpha.value[ i ] = .2 + Math.abs( (pointCloudGeometry.vertices[ i ].x + 250) / 2000 );
-    attributes.alpha.value[ i ] = 1;
-
-    attributes.customColor.value[i] = (i % 2 === 1) ? new THREE.Color( 0x00ffff ) : new THREE.Color( 0xffff00 );
-
-    // attributes.customColor.value[ i ] = new THREE.Color( 0xffffff );
-    // attributes.customColor.value[ i ].setRGB(Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), Math.floor(Math.random() * 255));
-
+    attributes.customColor.value[i] = (i % 2 === 1) ? new THREE.Color( 0x00ffff ) : new THREE.Color( 0xff69b4 );
   }
-  attributes.customColor.needsUpdate = true;
 
+  // create reserve particles which will become visible
+  // when we need some added dynamically
+  for(var i = NUM_PARTICLES; i < NUM_PARTICLES + NUM_RESERVE_PARTICLES; i++) {
+
+    var pX = 0,
+        pY = 0,
+        pZ = 0;
+
+    var particle = new THREE.Vector3(pX, pY, pZ);
+    particle.name = 'particle-' + i;
+    particle.payload = { data: 0, distanceToMove: 0 };
+
+    // add it to the particle system
+    pointCloudGeometry.vertices.push(particle);
+    attributes.alpha.value[i] = 0;
+
+    attributes.customColor.value[i] = new THREE.Color( 0xffff00 );
+  }
 
   // create the particle system
   pointCloud = new THREE.PointCloud(pointCloudGeometry, newShaderMaterial);
@@ -260,37 +273,30 @@ function movePoints() {
 function addPoints() {
   console.log('addPoints');
 
-  var n = 1000;
+  var n = 500;
 
   pointCloudGeometry.verticesNeedUpdate = true;
-  for(var i = NUM_PARTICLES; i < NUM_PARTICLES + n; i++) {
+  for(var i = NUM_PARTICLES + reserveParticlesUsed; i < NUM_PARTICLES + reserveParticlesUsed + n; i++) {
 
-    // create a particle with random position values, -250 -> 250
+    // create a new particle with random position values
     var pX = Math.random() * WORLD_SIZE - (WORLD_SIZE / 2),
         pY = Math.random() * WORLD_SIZE - (WORLD_SIZE / 2),
         pZ = Math.random() * WORLD_SIZE - (WORLD_SIZE / 2);
 
-    var particle = new THREE.Vector3(pX, pY, pZ);
-    particle.name = 'particle-' + i;
-    particle.payload = { data: 456 };
-
     // add it to the particle system
-    pointCloudGeometry.vertices.push(particle);
+    pointCloudGeometry.vertices[i].set(pX, pY, pZ);
 
-    // set alpha based on distance to (local) y-axis
-    // attributes.alpha.value[ i ] = .2 + Math.abs( (pointCloudGeometry.vertices[ i ].x + 250) / 2000 );
-    attributes.alpha.value[ i ] = 1;
-
-    attributes.customColor.value[i] = new THREE.Color( 0x00ffff );
-
-    attributes.customColor.value[ i ] = new THREE.Color( 0xffffff );
-    // attributes.customColor.value[ i ].setRGB(Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), Math.floor(Math.random() * 255));
+    // show as visible
+    attributes.alpha.value[i] = 1;
 
   }
+  reserveParticlesUsed += n;
+
   attributes.customColor.needsUpdate = true;
   attributes.alpha.needsUpdate = true;
 
   updateVertices = true;
+
 }
 var updateVertices = false;
 
