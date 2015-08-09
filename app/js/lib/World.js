@@ -117,6 +117,8 @@ var World = klass({
     this.controls.maxDistance = this.options.size * 2;
     this.controls.minDistance = this.options.size / 100;
     this.controls.addEventListener('change', this.render.bind(this));
+    // this.controls.autoRotate = true;
+    // this.controls.autoRotateSpeed = 1.0;
 
     // start the renderer - set a colour with full opacity
     // this.renderer.setClearColor(new THREE.Color(0, 1));
@@ -248,8 +250,6 @@ var World = klass({
   },
   render: function () {
 
-    // console.log('render', this.name);
-
     // check if vertices have chaged since last render
     if (this.updateVertices) {
       this.pointCloudGeometry.verticesNeedUpdate = true;
@@ -347,7 +347,6 @@ var World = klass({
         // select only first intersected point
         var intersection = ( intersections.length ) > 0 ? intersections[ 0 ] : null;
         if (intersection) {
-          console.log('intersection', intersection);
 
           // reset last active intersection
           if (this.lastActiveIntersection) {
