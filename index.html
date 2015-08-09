@@ -19,14 +19,12 @@
       attribute vec3 customColor;
 
       varying float vAlpha;
-      varying float vSize;
       varying vec3 vColor;
 
       void main() {
 
         vAlpha = alpha;
         vColor = customColor;
-        vSize = pointSize;
 
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         gl_PointSize = pointSize;
@@ -44,7 +42,6 @@
       uniform float worldSize;
 
       varying float vAlpha;
-      varying float vSize;
       varying vec3 vColor;
 
       void main() {
