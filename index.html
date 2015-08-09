@@ -55,7 +55,7 @@
         float depth = gl_FragCoord.z / gl_FragCoord.w;
         const vec3 fogColor = vec3( 0.1 );
 
-        float fogFactor = smoothstep( worldSize * 0.75, worldSize * 4.0, depth );
+        float fogFactor = smoothstep( worldSize * 1.8, worldSize * 2.5, depth );
         gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );
 
       }

@@ -115,7 +115,8 @@ var World = klass({
 
     this.controls = new THREE.OrbitControls(this.camera);
     this.controls.zoomSpeed = 0.5;
-    this.controls.maxDistance = this.options.size * 5;
+    this.controls.maxDistance = this.options.size * 2;
+    this.controls.minDistance = this.options.size / 100;
     this.controls.addEventListener('change', this.render.bind(this));
 
     // start the renderer - set a colour with full opacity
@@ -190,7 +191,14 @@ var World = klass({
 
     console.log('Starting animation...');
 
+    this.bindEventHandlers();
     this.animate();
+  },
+  bindEventHandlers: function() {
+    window.addEventListener('resize', this.onWindowResize.bind(this), false);
+    window.addEventListener('mousemove', this.onDocumentMouseMove.bind(this), false);
+    window.addEventListener('mousedown', this.onDocumentMouseDown.bind(this), false);
+    window.addEventListener('mouseup', this.onDocumentMouseUp.bind(this), false);
   },
   setOptions: function(opts) {
     this.options = this.options || {};
@@ -424,7 +432,7 @@ var World = klass({
 var world = new World('Andy\'s World', {
   numPoints: 1000,
   numReservePoints: 1000,
-  size: 1000,
+  size: 10000,
   pointSize: 5,
   showStats: true,
   vertexShaderId: 'vertexshader',
@@ -433,8 +441,4 @@ var world = new World('Andy\'s World', {
   debug: true
 });
 
-window.addEventListener('resize', world.onWindowResize.bind(world), false);
-window.addEventListener('mousemove', world.onDocumentMouseMove.bind(world), false);
-window.addEventListener('mousedown', world.onDocumentMouseDown.bind(world), false);
-window.addEventListener('mouseup', world.onDocumentMouseUp.bind(world), false);
 
