@@ -36,7 +36,8 @@ var World = klass({
 
     // for adding points without reallocating buffers
     this.reservePointsUsed = 0;
-    this.newPointsQueue = [];
+    this.addPointsQueue = [];
+    this.updatePointsQueue = [];
 
     this.updateVertices = false;
     this.pointsToMove = false;
@@ -241,10 +242,28 @@ var World = klass({
     var startTime = +new Date(),
         timeElapsed = 0,
         pointToAdd = null,
+        numPointsUpdatedThisFrame = 0;
         numPointsAddedThisFrame = 0;
 
+    // if there are points to update, do what you can in 10ms
+    // prioritise updating points over adding points
+
+    while ((timeElapsed < 10) && this.updatePointsQueue && (pointToUpdate = this.updatePointsQueue.shift())) {
+
+      this.pointCloudGeometry.vertices[pointToUpdate.i].set(pointToUpdate.x, pointToUpdate.y, pointToUpdate.z);
+      this.pointCloudGeometry.vertices[pointToUpdate.i].payload = pointToUpdate.payload;
+
+      numPointsUpdatedThisFrame++;
+      timeElapsed += +new Date() - startTime;
+    }
+
+    if (numPointsUpdatedThisFrame) {
+      console.log('numPointsUpdatedThisFrame', numPointsUpdatedThisFrame);
+    }
+    this.updateVertices = true;
+
     // if there are new points to add, do what you can in 10ms
-    while ((timeElapsed < 10) && this.newPointsQueue && (pointToAdd = this.newPointsQueue.shift())) {
+    while ((timeElapsed < 10) && this.addPointsQueue && (pointToAdd = this.addPointsQueue.shift())) {
 
       var i = this.options.numPoints + this.reservePointsUsed;
 
@@ -260,13 +279,19 @@ var World = klass({
 
       // show as visible
       this.shaderAttributes.alpha.value[i] = 1;
-      this.shaderAttributes.customColor.needsUpdate = true;
-      this.shaderAttributes.alpha.needsUpdate = true;
-      this.updateVertices = true;
+
 
       numPointsAddedThisFrame++;
       timeElapsed += +new Date() - startTime;
-      console.log('numPointsAddedThisFrame', numPointsAddedThisFrame);
+    }
+    if (numPointsUpdatedThisFrame) {
+      console.log('numPointsUpdatedThisFrame', numPointsUpdatedThisFrame);
+    }
+
+    if (numPointsAddedThisFrame || numPointsUpdatedThisFrame) {
+      this.shaderAttributes.customColor.needsUpdate = true;
+      this.shaderAttributes.alpha.needsUpdate = true;
+      this.updateVertices = true;
     }
 
     if (!this.raycaster) {
@@ -295,11 +320,12 @@ var World = klass({
     }
   },
   addPoint: function(x, y, z, payload) {
-    this.newPointsQueue.push({ x: x, y: y, z: z, payload: payload });
+    this.addPointsQueue.push({ x: x, y: y, z: z, payload: payload });
   },
-  movePoint: function (i, x, y, z) {
-    this.pointCloudGeometry.vertices[i].set(x, y, z);
-    this.updateVertices = true;
+  movePoint: function (i, x, y, z, payload) {
+    this.updatePointsQueue.push({ i: i, x: x, y: y, z: z, payload: payload })
+    // this.pointCloudGeometry.vertices[i].set(x, y, z);
+    // this.updateVertices = true;
   },
   testMovePoints: function(n) {
     for (var i = 0; i < n; i++) {
@@ -307,7 +333,7 @@ var World = klass({
           pY = Math.random() * this.options.size / 10 - (this.options.size / 10 / 2),
           pZ = Math.random() * this.options.size / 10 - (this.options.size / 10 / 2);
 
-      this.movePoint(i, pX, pY, pZ);
+      this.movePoint(i, pX, pY, pZ, {});
     }
   },
   onWindowResize: function() {
