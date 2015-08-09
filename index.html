@@ -8,26 +8,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="app/bower_components/jquery/dist/jquery.min.js"></script>
   <script src="app/bower_components/three.js/three.js"></script>
+  <script src="app/bower_components/klass/klass.min.js"></script>
   <script src="app/bower_components/three.js-controls/src/OrbitControls.js"></script>
   <script src="app/bower_components/underscore/underscore-min.js"></script>
 
   <script type="x-shader/x-vertex" id="vertexshader">
 
       attribute float alpha;
+      attribute float pointSize;
       attribute vec3 customColor;
-      uniform float size;
 
       varying float vAlpha;
+      varying float vSize;
       varying vec3 vColor;
 
       void main() {
 
         vAlpha = alpha;
         vColor = customColor;
+        vSize = pointSize;
 
-        vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
 
-        gl_PointSize = size;
+        gl_PointSize = pointSize;
 
         gl_Position = projectionMatrix * mvPosition;
 
@@ -40,12 +43,14 @@
       uniform vec3 color;
 
       varying float vAlpha;
+      varying float vSize;
       varying vec3 vColor;
 
       void main() {
 
         gl_FragColor = vec4(vColor, 1);
         gl_FragColor.a *= vAlpha;
+        // gl_PointSize = vSize;
 
       }
 
@@ -64,9 +69,10 @@
     </ul>
   </div>
 
+  <script src="app/js/shims.js"></script>
   <script src="app/js/stats.js"></script>
   <script src="app/js/detector.js"></script>
-  <script src="app/js/main.js"></script>
+  <script src="app/js/lib/World.js"></script>
   <script src="app/js/ui.js"></script>
 
 </body>

@@ -33,6 +33,7 @@ var World = klass({
     // for mouse intersection - interacting with points
     this.mouse = { x: 0, y: 0 };
     this.intersectedIndex = -1;
+    this.checkForIntersections = false;
 
     // for adding points without reallocating buffers
     this.reservePointsUsed = 0;
@@ -47,6 +48,9 @@ var World = klass({
       near: 1,
       far: this.options.size * 10
     };
+
+    this.activeIntersection = null;
+    this.lastActiveIntersection = null;
 
     // Check for WebGL Support
     if (!Detector.webgl) {
@@ -67,6 +71,8 @@ var World = klass({
 
     // for collision detection with mouse vector
     this.raycaster = new THREE.Raycaster();
+    this.raycaster.params.PointCloud.threshold = 100;
+
     this.mouse = new THREE.Vector2();
 
     if (this.options.showStats) {
@@ -77,6 +83,7 @@ var World = klass({
 
     this.shaderAttributes = {
       alpha: { type: 'f', value: [] },
+      pointSize: { type: 'f', value: [] },
       customColor: { type: 'c', value: [] },
       texture1: {
         type: "t",
@@ -132,6 +139,7 @@ var World = klass({
       // add it to the point system
       this.pointCloudGeometry.vertices.push(point);
       this.shaderAttributes.alpha.value[i] = 1;
+      this.shaderAttributes.pointSize.value[i] = this.options.pointSize;
 
       this.shaderAttributes.customColor.value[i] = (i % 2 === 1)
         ? new THREE.Color( 0x00ffff )
@@ -153,7 +161,7 @@ var World = klass({
       // add it to the point system
       this.pointCloudGeometry.vertices.push(point);
       this.shaderAttributes.alpha.value[i] = 0;
-
+      this.shaderAttributes.pointSize.value[i] = this.options.pointSize;
       this.shaderAttributes.customColor.value[i] = new THREE.Color( 0xffff00 );
     }
 
@@ -250,8 +258,22 @@ var World = klass({
 
     while ((timeElapsed < 10) && this.updatePointsQueue && (pointToUpdate = this.updatePointsQueue.shift())) {
 
-      this.pointCloudGeometry.vertices[pointToUpdate.i].set(pointToUpdate.x, pointToUpdate.y, pointToUpdate.z);
-      this.pointCloudGeometry.vertices[pointToUpdate.i].payload = pointToUpdate.payload;
+      if (typeof pointToUpdate.x === 'number') {
+        this.pointCloudGeometry.vertices[pointToUpdate.i].set(pointToUpdate.x, pointToUpdate.y, pointToUpdate.z);
+      }
+
+      if (typeof pointToUpdate.payload === 'object') {
+        this.pointCloudGeometry.vertices[pointToUpdate.i].payload = pointToUpdate.payload;
+      }
+
+      // if (typeof pointToUpdate.color === 'object') {
+      //   console.log('pointToUpdate.color', pointToUpdate);
+      //   this.shaderAttributes.customColor.value[pointToUpdate.i] = pointToUpdate.color;
+      // }
+
+      if (typeof pointToUpdate.size === 'number') {
+        this.shaderAttributes.pointSize.value[pointToUpdate.i] = pointToUpdate.size;
+      }
 
       numPointsUpdatedThisFrame++;
       timeElapsed += +new Date() - startTime;
@@ -291,6 +313,7 @@ var World = klass({
     if (numPointsAddedThisFrame || numPointsUpdatedThisFrame) {
       this.shaderAttributes.customColor.needsUpdate = true;
       this.shaderAttributes.alpha.needsUpdate = true;
+      this.shaderAttributes.pointSize.needsUpdate = true;
       this.updateVertices = true;
     }
 
@@ -301,6 +324,32 @@ var World = klass({
 
     if (this.raycaster) {
       this.raycaster.setFromCamera(this.mouse, this.camera);
+
+      if (this.checkForIntersections) {
+
+        // reset
+        this.checkForIntersections = false;
+
+        var intersections = this.raycaster.intersectObjects([ this.pointCloud ]);
+        var intersection = ( intersections.length ) > 0 ? intersections[ 0 ] : null;
+        if (intersection) {
+          console.log('intersection', intersection);
+
+          // reset last active intersection
+          if (this.lastActiveIntersection) {
+            this.updatePoint(this.lastActiveIntersection.index, null, null, null, null, null, this.options.pointSize);
+          }
+
+
+          this.lastActiveIntersection = this.activeIntersection = intersection;
+
+          // update new intersected particle
+          this.updatePoint(intersection.index, null, null, null, null, null, 10.0);
+        }
+      }
+
+
+
 
     } else {
       console.error('raycaster not defined');
@@ -322,10 +371,8 @@ var World = klass({
   addPoint: function(x, y, z, payload) {
     this.addPointsQueue.push({ x: x, y: y, z: z, payload: payload });
   },
-  movePoint: function (i, x, y, z, payload) {
-    this.updatePointsQueue.push({ i: i, x: x, y: y, z: z, payload: payload })
-    // this.pointCloudGeometry.vertices[i].set(x, y, z);
-    // this.updateVertices = true;
+  updatePoint: function (i, x, y, z, payload, color, size) {
+    this.updatePointsQueue.push({ i: i, x: x, y: y, z: z, payload: payload, color: color, size: size })
   },
   testMovePoints: function(n) {
     for (var i = 0; i < n; i++) {
@@ -333,7 +380,7 @@ var World = klass({
           pY = Math.random() * this.options.size / 10 - (this.options.size / 10 / 2),
           pZ = Math.random() * this.options.size / 10 - (this.options.size / 10 / 2);
 
-      this.movePoint(i, pX, pY, pZ, {});
+      this.updatePoint(i, pX, pY, pZ, {}, null, null);
     }
   },
   onWindowResize: function() {
@@ -342,6 +389,18 @@ var World = klass({
 
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.render();
+  },
+  onDocumentMouseMove: function(event) {
+    event.preventDefault();
+
+    this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+  },
+  onDocumentMouseDown: function() {
+    this.checkForIntersections = true;
+  },
+  onDocumentMouseUp: function() {
+    this.checkForIntersections = false;
   }
 });
 
@@ -349,7 +408,7 @@ var world = new World('Andy\'s World', {
   numPoints: 1000,
   numReservePoints: 1000,
   size: 10000,
-  pointSize: 2,
+  pointSize: 2.0,
   showStats: true,
   vertexShaderId: 'vertexshader',
   fragmentShaderId: 'fragmentshader',
@@ -358,4 +417,7 @@ var world = new World('Andy\'s World', {
 });
 
 window.addEventListener('resize', world.onWindowResize.bind(world), false);
+window.addEventListener('mousemove', world.onDocumentMouseMove.bind(world), false);
+window.addEventListener('mousedown', world.onDocumentMouseDown.bind(world), false);
+window.addEventListener('mouseup', world.onDocumentMouseUp.bind(world), false);
 
