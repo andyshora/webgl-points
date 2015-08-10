@@ -15,3 +15,5 @@
 - If you cannot dyamically add particles, add some extras to use with alpha = 0, and activate them when needed. May be expensive to extend buffer size.
 
 - Find how to move points via gl_Position in a custom shader
+
+

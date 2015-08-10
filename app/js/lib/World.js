@@ -3,6 +3,12 @@ var stop = false;
 var World = klass({
   initialize: function(name, opts) {
 
+    // Check for WebGL Support
+    if (!Detector.webgl) {
+      alert('WebGL is not supported in your browser.');
+      return;
+    }
+
     this.name = name;
 
     this.defaultOptions = {
@@ -52,22 +58,12 @@ var World = klass({
     this.activeIntersection = null;
     this.lastActiveIntersection = null;
 
-    // Check for WebGL Support
-    if (!Detector.webgl) {
-      alert('WebGL is not supported in your browser.');
-      return;
-    }
-
     // create a WebGL renderer, camera, and a scene
     this.scene = new THREE.Scene();
     this.renderer = new THREE.WebGLRenderer({ clearColor: 0x000000, clearAlpha: 1 });
+    this.renderer.setSize(this.sceneOptions.width, this.sceneOptions.height);
 
-    this.camera = new THREE.PerspectiveCamera(
-      this.cameraOptions.viewAngle,
-      this.sceneOptions.width / this.sceneOptions.height,
-      this.cameraOptions.near,
-      this.cameraOptions.far
-    );
+    this.initCamera();
 
     // for collision detection with mouse vector
     this.raycaster = new THREE.Raycaster();
@@ -81,12 +77,59 @@ var World = klass({
       this.stats.domElement.style.top = '0';
     }
 
+    this.initControls();
+    this.initPointCloud();
+
+    // add objects to scene
+    this.scene.add(this.camera);
+    this.scene.add(this.pointCloud);
+
+    if (this.options.containerId) {
+      document.getElementById(this.options.containerId).appendChild(this.renderer.domElement);
+    } else {
+      console.error('No container specified');
+      return;
+    }
+
+    if (this.options.showStats) {
+      document.body.appendChild(this.stats.domElement);
+    }
+
+    this.bindEventHandlers();
+    this.animate();
+  },
+  initCamera: function() {
+    this.camera = new THREE.PerspectiveCamera(
+      this.cameraOptions.viewAngle,
+      this.sceneOptions.width / this.sceneOptions.height,
+      this.cameraOptions.near,
+      this.cameraOptions.far
+    );
+    // the camera starts at 0,0,0 so pull it back
+    this.camera.position.z = this.options.size * 2;
+  },
+  initControls: function() {
+    this.controls = new THREE.OrbitControls(this.camera);
+    this.controls.zoomSpeed = 0.5;
+    this.controls.maxDistance = this.options.size * 2;
+    this.controls.minDistance = this.options.size / 100;
+    this.controls.addEventListener('change', this.render.bind(this));
+    // this.controls.autoRotate = true;
+    // this.controls.autoRotateSpeed = 1.0;
+  },
+  initPointCloud: function() {
+
+    this.pointCloudGeometry = new THREE.Geometry();
+    this.pointCloudGeometry.dynamic = true;
+
+    // values for the shader which change per point
     this.shaderAttributes = {
       alpha: { type: 'f', value: [] },
       pointSize: { type: 'f', value: [] },
       customColor: { type: 'c', value: [] }
     };
 
+    // values for the shader which stay uniform across points
     this.shaderUniforms = {
       worldSize: { type: 'f', value: this.options.size * 1.0 },
       color: { type: 'c', value: new THREE.Color( 0xffffff ) },
@@ -97,38 +140,6 @@ var World = klass({
       }
     };
 
-    // point system material
-    // using custom shaders so rendering changes run in parallel on the GPU
-    var shaderMaterial = new THREE.ShaderMaterial( {
-      uniforms:       this.shaderUniforms,
-      attributes:     this.shaderAttributes,
-      vertexShader:   document.getElementById(this.options.vertexShaderId).textContent,
-      fragmentShader: document.getElementById(this.options.fragmentShaderId).textContent,
-      transparent: true,
-      vertexColor: true,
-      depthTest: false // removes bg overlap
-    });
-
-    // the camera starts at 0,0,0 so pull it back
-    this.camera.position.z = this.options.size * 2;
-
-    this.controls = new THREE.OrbitControls(this.camera);
-    this.controls.zoomSpeed = 0.5;
-    this.controls.maxDistance = this.options.size * 2;
-    this.controls.minDistance = this.options.size / 100;
-    this.controls.addEventListener('change', this.render.bind(this));
-    // this.controls.autoRotate = true;
-    // this.controls.autoRotateSpeed = 1.0;
-
-    // start the renderer - set a colour with full opacity
-    // this.renderer.setClearColor(new THREE.Color(0, 1));
-    this.renderer.setSize(this.sceneOptions.width, this.sceneOptions.height);
-
-    this.pointCloudGeometry = new THREE.Geometry();
-    this.pointCloudGeometry.dynamic = true;
-
-    // console.log('creating', this.options.numPoints, 'points');
-
     // now create the individual points
     for (var i = 0; i < this.options.numPoints; i++) {
 
@@ -138,8 +149,8 @@ var World = klass({
           pZ = Math.random() * this.options.size - (this.options.size / 2);
 
       var point = new THREE.Vector3(pX, pY, pZ);
-      point.name = 'point-' + i;
-      point.payload = { data: 123, distanceToMove: this.options.size / 2 };
+      point.id = 'point-' + i;
+      point.payload = { data: 123 };
 
       // add it to the point system
       this.pointCloudGeometry.vertices.push(point);
@@ -155,13 +166,11 @@ var World = klass({
     // when we need some added dynamically
     for (var i = this.options.numPoints; i < this.options.numPoints + this.options.numReservePoints; i++) {
 
-      var pX = 0,
-          pY = 0,
-          pZ = 0;
-
+      // doesnt matter where we store these hidden point
+      var pX = 0, pY = 0, pZ = 0;
       var point = new THREE.Vector3(pX, pY, pZ);
-      point.name = 'point-' + i;
-      point.payload = { data: 0, distanceToMove: 0 };
+      point.id = 'point-' + i;
+      point.payload = { data: 0 };
 
       // add it to the point system
       this.pointCloudGeometry.vertices.push(point);
@@ -174,26 +183,22 @@ var World = klass({
     this.shaderAttributes.alpha.needsUpdate = true;
     this.updateVertices = true;
 
+    // point system material
+    // using custom shaders so rendering changes run in parallel on the GPU
+    var shaderMaterial = new THREE.ShaderMaterial( {
+      uniforms:       this.shaderUniforms,
+      attributes:     this.shaderAttributes,
+      vertexShader:   document.getElementById(this.options.vertexShaderId).textContent,
+      fragmentShader: document.getElementById(this.options.fragmentShaderId).textContent,
+      transparent: true,
+      vertexColor: true,
+      depthTest: false // removes bg overlap
+    });
+
     // create the point system
     this.pointCloud = new THREE.PointCloud(this.pointCloudGeometry, shaderMaterial);
     this.pointCloud.sortPoints = true;
     this.pointCloud.dynamic = true;
-
-    this.scene.add(this.camera);
-    this.scene.add(this.pointCloud);
-
-    document.getElementById(this.options.containerId).appendChild(this.renderer.domElement);
-
-    if (this.options.showStats) {
-      document.body.appendChild(this.stats.domElement);
-    }
-    // window.addEventListener( 'mousemove', onDocumentMouseMove, false );
-    // window.addEventListener( 'mousedown', onDocumentMouseDown, false );
-
-    console.log('Starting animation...');
-
-    this.bindEventHandlers();
-    this.animate();
   },
   bindEventHandlers: function() {
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
@@ -226,14 +231,8 @@ var World = klass({
     }
   },
   animate: function() {
-    if (stop) {
-      console.error('World animation stopped');
-      return;
-    } else {
-      var requestId = requestAnimationFrame(this.animate.bind(this));
-      // requestAnimationFrame(this.animate);
-      // console.log('animate', requestId);
-    }
+
+    var requestId = requestAnimationFrame(this.animate.bind(this));
 
     // console.log(this.render);
     this.controls.update();
@@ -313,82 +312,64 @@ var World = klass({
       numPointsAddedThisFrame++;
       timeElapsed += +new Date() - startTime;
     }
-    if (numPointsUpdatedThisFrame) {
-      console.log('numPointsUpdatedThisFrame', numPointsUpdatedThisFrame);
-    }
 
     if (numPointsAddedThisFrame || numPointsUpdatedThisFrame) {
+
+      console.log('Work done this frame: ', 'points added:', numPointsAddedThisFrame, 'points updated:', numPointsUpdatedThisFrame);
       this.shaderAttributes.customColor.needsUpdate = true;
       this.shaderAttributes.alpha.needsUpdate = true;
       this.shaderAttributes.pointSize.needsUpdate = true;
       this.updateVertices = true;
     }
 
-    if (!this.raycaster) {
-      stop = true;
-      console.log('stopped', this);
-    }
+    this.raycaster.setFromCamera(this.mouse, this.camera);
 
-    if (this.raycaster) {
-      this.raycaster.setFromCamera(this.mouse, this.camera);
+    if (this.checkForIntersections) {
 
-      if (this.checkForIntersections) {
+      // reset
+      this.checkForIntersections = false;
 
-        // reset
-        this.checkForIntersections = false;
+      var intersections = this.raycaster.intersectObjects([ this.pointCloud ]);
 
-        var intersections = this.raycaster.intersectObjects([ this.pointCloud ]);
+      // select all intersected points
+      // for (var i = 0; i < intersections.length; i++) {
+      //   this.updatePoint(intersections[i].index, null, null, null, null, null, this.options.pointSize * 5);
+      // }
 
-        // select all intersected points
-        // for (var i = 0; i < intersections.length; i++) {
-        //   this.updatePoint(intersections[i].index, null, null, null, null, null, this.options.pointSize * 5);
-        // }
+      // sort by closeness to ray
+      // select only first intersected point
+      var intersection = ( intersections.length ) > 0 ? _.sortBy(intersections, 'distanceToRay')[ 0 ] : null;
+      if (intersection) {
 
-        // sort by closeness to ray
-        // select only first intersected point
-        var intersection = ( intersections.length ) > 0 ? _.sortBy(intersections, 'distanceToRay')[ 0 ] : null;
-        if (intersection) {
-
-          console.log('intersection', intersection);
-
-          // reset last active intersection
-          if (this.lastActiveIntersection) {
-            this.updatePoint(this.lastActiveIntersection.index, null, null, null, null, null, this.options.pointSize);
-          }
-
-
-          this.lastActiveIntersection = this.activeIntersection = intersection;
-
-          // update new intersected particle
-          this.updatePoint(intersection.index, null, null, null, null, null, this.options.pointSize * 5);
-          this.showPointDetails(intersection.index);
+        // reset last active intersection
+        if (this.lastActiveIntersection) {
+          this.updatePoint(this.lastActiveIntersection.index, null, null, null, null, null, this.options.pointSize);
         }
+
+        this.lastActiveIntersection = this.activeIntersection = intersection;
+
+        // update new intersected particle
+        this.updatePoint(intersection.index, null, null, null, null, null, this.options.pointSize * 5);
+        this.showPointDetails(intersection.index);
       }
-
-
-
-
-    } else {
-      console.error('raycaster not defined');
     }
 
-    // console.log('this.renderer.render', this.scene, this.camera);
     this.renderer.render(this.scene, this.camera);
 
   },
   showPointDetails: function(i) {
     var p = this.pointCloudGeometry.vertices[i];
 
+    // callback outside scope
     if (this.options.onPointSelected) {
       this.options.onPointSelected.apply(this, [p]);
-
     }
 
   },
   testAddPoints: function () {
     console.log('testAddPoints');
 
-    var payload = { data: 123, distanceToMove: 500 };
+    var payload = { data: 123 };
 
     for (var i = 0; i < 100; i++) {
       this.addPoint((Math.cos(i) + 1) * 1000, (Math.sin(i) + 1) * 1000, 0, payload);

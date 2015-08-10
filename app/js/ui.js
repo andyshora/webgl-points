@@ -1,13 +1,11 @@
 var app = angular.module('WorldViewerApp', []);
 
 app.controller('MainCtrl', function ($scope) {
-  console.log('MainCtrl');
 
   $scope.controlsOpen = false;
   $scope.point = {};
 
   function onPointSelected(point) {
-    console.log('onPointSelected', point);
     $scope.point = point;
     $scope.$apply();
   }
@@ -24,5 +22,14 @@ app.controller('MainCtrl', function ($scope) {
     debug: true,
     onPointSelected: onPointSelected
   });
+
+  $scope.testMovePoints = function() {
+    world.testMovePoints(100);
+  };
+  $scope.testAddPoints = function() {
+    world.testAddPoints();
+  };
+
+
 
 });

@@ -1,18 +1,20 @@
 body {
   margin: 0;
   padding: 0;
-  background: darkBlue;
+  background: black;
   font-family: Arial;
+  overflow: hidden;
 }
 .controls-trigger {
   position: absolute;
-  top: -30px;
+  top: -40px;
   left: 0;
-  background: white;
+  background: rgba(255, 255, 255, .05);
+  color: white;
   display: block;
   width: 140px;
   height: 25px;
-  padding: 5px 0 0 40px;
+  padding: 5px 0 10px 40px;
   line-height: 30px;
   font-weight: bold;
   cursor: pointer;
@@ -23,7 +25,8 @@ body {
   left: 0;
   z-index: 2;
   width: 80%;
-  background: white;
+  background: rgba(255, 255, 255, .05);
+  color: white;
   height: 90px;
   bottom: -90px;
   transition: bottom .4s;
@@ -33,13 +36,37 @@ body {
   bottom: 0;
 }
 
+.test-buttons {
+  position: absolute;
+  display: block;
+  bottom: 0;
+  right: 0;
+  z-index: 3;
+  width: 300px;
+  text-align: right;
+}
+
 .point-details {
   position: absolute;
   display: block;
   top: 0;
   right: 0;
   z-index: 3;
-  width: 80%;
-  height: 90px;
+  width: 300px;
   color: white;
+  background: rgba(255, 255, 255, .05);
+  font-size: 10px;
+  font-family: Courier New, Courier;
+}
+.point-details td {
+  padding: 5px;
+}
+
+.world {
+  cursor: crosshair;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
 }

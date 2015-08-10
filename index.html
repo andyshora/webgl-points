@@ -60,11 +60,30 @@
   </script>
   <link rel="stylesheet" href="app/css/main.css">
 </head>
-<body ng-controller="MainCtrl">
-  <div id="WebGLCanvas"></div>
+<body ng-controller="MainCtrl" ng-cloak>
+  <div class="world" id="WebGLCanvas"></div>
 
-  <div class="point-details" ng-show="point.name">
-    <p>Name: {{ point.name }}, x: {{ point.x }}, y: {{ point.y }}, z: {{ point.z }}</p>
+  <table class="point-details" ng-show="point.id" cellpadding="0" cellspacing="0">
+    <tr>
+      <td>ID</td><td>{{ point.id }}</td>
+    </tr>
+    <tr>
+      <td>x</td><td>{{ point.x }}</td>
+    </tr>
+    <tr>
+      <td>y</td><td>{{ point.y }}</td>
+    </tr>
+    <tr>
+      <td>z</td><td>{{ point.z }}</td>
+    </tr>
+    <tr>
+      <td>Data</td><td>{{ point.payload }}</td>
+    </tr>
+  </table>
+
+  <div class="test-buttons">
+    <button ng-click="testAddPoints()">Add Points</button>
+    <button ng-click="testMovePoints()">Move Points</button>
   </div>
 
   <div class="controls-help" ng-class="{'controls-help--open':controlsOpen}">
