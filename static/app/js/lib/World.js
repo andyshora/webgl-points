@@ -140,6 +140,7 @@ var World = klass({
     this.controls.zoomSpeed = 0.5;
     this.controls.maxDistance = this.options.size * 2;
     this.controls.minDistance = this.options.size / 100;
+    this.controls.noKeys = true;
 
     // todo - throttle if frame rate has been lowered
     this.controls.addEventListener('change', this.render.bind(this));
@@ -264,25 +265,20 @@ var World = klass({
    * @return {Object<THREE.Line>} The axis to add to the scene
    */
   buildAxis: function (src, dst, colorHex, positiveSide) {
-    var geom = new THREE.Geometry(),
-          mat;
+    var axisGeometry = new THREE.Geometry(), axisMaterial;
 
     if (positiveSide) {
-      // mat = new THREE.LineDashedMaterial({ linewidth: 3, color: colorHex, dashSize: 3, gapSize: 3 });
-      mat = new THREE.LineBasicMaterial({ linewidth: 1, fog: true, color: colorHex, transparent: true, opacity: 0.3 });
+
+      axisMaterial = new THREE.LineBasicMaterial({ linewidth: 1, fog: true, color: colorHex, transparent: true, opacity: 0.3 });
 
     } else {
-      mat = new THREE.LineBasicMaterial({ linewidth: 1, fog: true, color: colorHex, transparent: true, opacity: 1 });
+      axisMaterial = new THREE.LineBasicMaterial({ linewidth: 1, fog: true, color: colorHex, transparent: true, opacity: 1 });
     }
 
-    console.log(mat);
+    axisGeometry.vertices.push(src.clone());
+    axisGeometry.vertices.push(dst.clone());
 
-    geom.vertices.push( src.clone() );
-    geom.vertices.push( dst.clone() );
-
-    // geom.computeLineDistances(); // This one is SUPER important, otherwise dashed lines will appear as simple plain lines
-
-    var axis = new THREE.Line( geom, mat, THREE.LinePieces );
+    var axis = new THREE.Line(axisGeometry, axisMaterial, THREE.LinePieces);
 
     return axis;
   },
