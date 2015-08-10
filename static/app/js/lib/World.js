@@ -31,10 +31,20 @@ var World = klass({
       'fragmentShaderId': { type: 'string', defaultValue: 'fragmentshader' },
       'containerId': { type: 'string', defaultValue: 'WebGLCanvas' },
       'onPointSelected': { type: 'function', defaultValue: null },
-      'autoRotate': { type: 'boolean', defaultValue: false }
+      'autoRotate': { type: 'boolean', defaultValue: false },
+      'targetFrameRate': { type: 'number', defaultValue: 60 }
     };
 
     this.setOptions(opts);
+
+    this.n = 0; // animation frame number
+
+    switch (this.options.targetFrameRate) {
+      case 60: this.framesToSkip = 0; break;
+      case 30: this.framesToSkip = 1; break;
+      case 12: this.framesToSkip = 4; break;
+      default: this.framesToSkip = 0;
+    }
 
     // set the scene size
     this.sceneOptions = {
@@ -130,6 +140,8 @@ var World = klass({
     this.controls.zoomSpeed = 0.5;
     this.controls.maxDistance = this.options.size * 2;
     this.controls.minDistance = this.options.size / 100;
+
+    // todo - throttle if frame rate has been lowered
     this.controls.addEventListener('change', this.render.bind(this));
     // this.controls.autoRotate = true;
     // this.controls.autoRotateSpeed = 1.0;
@@ -161,10 +173,12 @@ var World = klass({
       }
     };
 
+    var t1 = +new Date();
+
     // now create the individual points
     for (var i = 0; i < this.options.numPoints; i++) {
 
-      // create a point with random position values, -250 -> 250
+      // create a point with random position values
       var pX = Math.random() * this.options.size - (this.options.size / 2),
           pY = Math.random() * this.options.size - (this.options.size / 2),
           pZ = Math.random() * this.options.size - (this.options.size / 2);
@@ -183,6 +197,9 @@ var World = klass({
         : new THREE.Color( 0xff69b4 );
     }
 
+    var t2 = +new Date();
+    console.log(t2 - t1);
+
     // create reserve points which will become visible
     // when we need some added dynamically
     for (var i = this.options.numPoints; i < this.options.numPoints + this.options.numReservePoints; i++) {
@@ -199,6 +216,8 @@ var World = klass({
       this.shaderAttributes.pointSize.value[i] = this.options.pointSize;
       this.shaderAttributes.customColor.value[i] = new THREE.Color( 0xffff00 );
     }
+
+
 
     this.shaderAttributes.customColor.needsUpdate = true;
     this.shaderAttributes.alpha.needsUpdate = true;
@@ -275,7 +294,21 @@ var World = klass({
    */
   animate: function() {
 
-    var requestId = requestAnimationFrame(this.animate.bind(this));
+    var requestId = null;
+
+    if (this.n < this.framesToSkip) {
+      this.n++;
+      requestId = requestAnimationFrame(this.animate.bind(this));
+      return;
+    }
+
+    this.n = 0;
+
+    // console.log(this.n);
+
+    // var t1 = +new Date();
+
+    requestId = requestAnimationFrame(this.animate.bind(this));
 
     // console.log(this.render);
     this.controls.update();
@@ -288,7 +321,12 @@ var World = klass({
       this.movePoints();
     }
 
+    // var t2 = +new Date();
+    // console.log('animate', t2 - t1);
+
     this.render();
+    // var t3 = +new Date();
+    // console.log('render', t3 - t2);
   },
   /**
    * Set a flag indicating whether the world should auto rotate
@@ -347,8 +385,6 @@ var World = klass({
       numPointsUpdatedThisFrame++;
       timeElapsed += +new Date() - startTime;
     }
-
-    this.updateVertices = true;
 
     // if there are new points to add, do what you can in 10ms
     while ((timeElapsed < 10) && this.addPointsQueue && (pointToAdd = this.addPointsQueue.shift())) {
@@ -414,6 +450,7 @@ var World = klass({
       }
     }
 
+    // todo - consider reducing refresh rate for higher number of points
     this.renderer.render(this.scene, this.camera);
 
   },

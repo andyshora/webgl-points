@@ -20,7 +20,15 @@
 
 - Increasing to billions of particles. Proper GPU required, dedicated memory. Faster CPU required for bigger initial world creation. Currently crashing at creation stage probably due to there being no time to recoup memory during the particle loop.
 
+- Google Chrome Helper process crashes when memory exceeds 1.5GB when creating 10M points.
+
+- Investigate [Chrome Native Client](https://developer.chrome.com/native-client)
+
 - Potential to group billions of particles into sub-worlds, which provide finer view when focussed on. Much like marker grouping on maps.
+
+- Consider reducing the renderer.render frequency for higher number of points. At the moment render requests are getting stacked up when aiming for 60fps.
+
+- Throttle mousemove events when numPoints > 1000000
 
 ## Adding an app to dokku
 

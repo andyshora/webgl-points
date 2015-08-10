@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>**** WebGL Points</title>
-  <meta name="description" content="{{description}}">
+  <title>**** World Viewer</title>
+  <meta name="description" content="3D World View in WebGL">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="app/bower_components/angular/angular.min.js"></script>
   <script src="app/bower_components/three.js/three.js"></script>
@@ -95,6 +95,12 @@
     <div><label>Number of points</label><input type="text" ng-model="numPoints"></div>
     <div><label>Point size</label><input type="text" ng-model="pointSize"></div>
     <div><label>World axis length</label><input type="text" ng-model="worldSize"></div>
+    <div><label>Target frame rate</label>
+      60<input type="radio" name="targetFrameRate" ng-model="targetFrameRate" value="60">
+      30<input type="radio" name="targetFrameRate" ng-model="targetFrameRate" value="30">
+      12<input type="radio" name="targetFrameRate" ng-model="targetFrameRate" value="12">
+
+    </div>
     <div><button class="btn" ng-click="createWorld()">Create World</button></div>
   </div>
 

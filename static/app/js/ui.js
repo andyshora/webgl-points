@@ -12,6 +12,7 @@ app.controller('MainCtrl', function ($scope) {
   $scope.worldSize = 1000000;
   $scope.numPoints = 10000;
   $scope.pointSize = 4;
+  $scope.targetFrameRate = 60;
 
   var world = null;
 
@@ -27,11 +28,23 @@ app.controller('MainCtrl', function ($scope) {
       containerId: 'WebGLCanvas',
       debug: true,
       onPointSelected: onPointSelected,
-      autoRotate: $scope.autoRotate
+      autoRotate: $scope.autoRotate,
+      targetFrameRate: parseInt($scope.targetFrameRate, 10)
     });
 
     $scope.worldCreated = true;
   };
+
+  $scope.$watch('numPoints', function(numPoints) {
+    // lower target frame rate as user changes numPoints
+    if (numPoints) {
+      if (parseInt(numPoints, 10) > 1000000) {
+        $scope.targetFrameRate = 12;
+      } else if (parseInt(numPoints, 10) > 500000) {
+        $scope.targetFrameRate = 30;
+      }
+    }
+  });
 
   function onPointSelected(point) {
     $scope.point = point;
