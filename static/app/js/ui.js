@@ -5,26 +5,38 @@ app.controller('MainCtrl', function ($scope) {
 
   $scope.controlsOpen = false;
   $scope.point = {};
-  $scope.autoRotate = true;
+  $scope.autoRotate = false;
+  $scope.worldCreated = false;
+
+  // world params
+  $scope.worldSize = 1000000;
+  $scope.numPoints = 10000;
+  $scope.pointSize = 4;
+
+  var world = null;
+
+  $scope.createWorld = function() {
+    world = new World('Andy\'s World', {
+        numPoints: parseInt($scope.numPoints, 10),
+        numReservePoints: parseInt($scope.numPoints, 10) < 10000 ? 10000 : parseInt($scope.numPoints, 10),
+        size: parseInt($scope.worldSize, 10),
+        pointSize: parseInt($scope.pointSize, 10),
+        showStats: true,
+        vertexShaderId: 'vertexshader',
+        fragmentShaderId: 'fragmentshader',
+        containerId: 'WebGLCanvas',
+        debug: true,
+        onPointSelected: onPointSelected,
+        autoRotate: $scope.autoRotate
+      });
+
+    $scope.worldCreated = true;
+  };
 
   function onPointSelected(point) {
     $scope.point = point;
     $scope.$apply();
   }
-
-  var world = new World('Andy\'s World', {
-    numPoints: 10000,
-    numReservePoints: 100000,
-    size: 1000000,
-    pointSize: 4,
-    showStats: true,
-    vertexShaderId: 'vertexshader',
-    fragmentShaderId: 'fragmentshader',
-    containerId: 'WebGLCanvas',
-    debug: true,
-    onPointSelected: onPointSelected,
-    autoRotate: $scope.autoRotate
-  });
 
   $scope.toggleRotation = function() {
     $scope.autoRotate = !$scope.autoRotate;

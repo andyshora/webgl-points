@@ -35,6 +35,19 @@ body {
 .btn:hover {
   background: rgba(255,255,255,.1);
 }
+input[type=number], input[type=text] {
+  padding: 6px 13px;
+  background: rgba(255,255,255,.05);
+  color: white;
+  border: 1px solid rgba(255,255,255,.5);
+  letter-spacing: 1px;
+  font-family: 'Ropa Sans';
+  font-size: 10px;
+  transition: background .5s;
+}
+input[type=number]:active, input[type=text]:active {
+  background: rgba(255,255,255,.1);
+}
 .controls-help {
   position: absolute;
   left: 0;
@@ -48,6 +61,25 @@ body {
   transition: bottom .4s;
 }
 
+.world-form {
+  width: 500px;
+  margin: 5% auto 0;
+  padding: 20px;
+  border: 1px solid rgba(255,255,255,.5);
+}
+.world-form > div {
+  margin: 0 0 5px 0;
+}
+.world-form label {
+  width: 200px;
+  text-align: right;
+  display: inline-block;
+  color: white;
+  margin-right: 10px;
+}
+.world-form .btn {
+  margin-left: 210px;
+}
 .controls-help--open {
   bottom: 0;
 }

@@ -64,9 +64,9 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ropa+Sans:400">
 </head>
 <body ng-controller="MainCtrl" ng-cloak>
-  <div class="world" id="WebGLCanvas"></div>
+  <div class="world" id="WebGLCanvas" ng-show="worldCreated"></div>
 
-  <table class="point-details" ng-show="point.id" cellpadding="0" cellspacing="0">
+  <table class="point-details" ng-show="worldCreated && point.id" cellpadding="0" cellspacing="0">
     <tr>
       <td>ID</td><td>{{ point.id }}</td>
     </tr>
@@ -84,11 +84,17 @@
     </tr>
   </table>
 
-  <div class="test-buttons">
+  <div ng-show="worldCreated" class="test-buttons">
     <button class="btn" ng-click="testAddPoints()">Add Points</button>
     <button class="btn" ng-click="testMovePoints()">Move Points</button>
     <button class="btn" ng-click="toggleRotation()">Auto-rotate</button>
+  </div>
 
+  <div class="world-form" ng-hide="worldCreated">
+    <div><label>Number of points</label><input type="text" ng-model="numPoints"></div>
+    <div><label>Point size</label><input type="text" ng-model="pointSize"></div>
+    <div><label>World axis length</label><input type="text" ng-model="worldSize"></div>
+    <div><button class="btn" ng-click="createWorld()">Create World</button></div>
   </div>
 
   <div class="controls-help" ng-class="{'controls-help--open':controlsOpen}">

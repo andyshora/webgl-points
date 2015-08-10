@@ -16,4 +16,8 @@
 
 - Find how to move points via gl_Position in a custom shader
 
+## Todo
 
+- Increasing to billions of particles. Proper GPU required, dedicated memory. Faster CPU required for bigger initial world creation.
+
+- Potential to group billions of particles into sub-worlds, which provide finer view when focussed on. Much like marker grouping on maps.
