@@ -203,9 +203,19 @@ var World = klass({
   },
   bindEventHandlers: function() {
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
-    window.addEventListener('mousemove', this.onDocumentMouseMove.bind(this), false);
-    window.addEventListener('mousedown', this.onDocumentMouseDown.bind(this), false);
-    window.addEventListener('mouseup', this.onDocumentMouseUp.bind(this), false);
+    window.addEventListener('mousemove', this.onMouseMove.bind(this), false);
+    window.addEventListener('mousedown', this.onMouseDown.bind(this), false);
+    window.addEventListener('mouseup', this.onMouseUp.bind(this), false);
+
+    if ('touchstart' in window) {
+      window.addEventListener('touchmove', this.onMouseMove.bind(this), false);
+      window.addEventListener('touchdown', this.onMouseDown.bind(this), false);
+      window.addEventListener('touchup', this.onMouseUp.bind(this), false);
+    } else {
+      window.addEventListener('mousemove', this.onMouseMove.bind(this), false);
+      window.addEventListener('mousedown', this.onMouseDown.bind(this), false);
+      window.addEventListener('mouseup', this.onMouseUp.bind(this), false);
+    }
   },
   setOptions: function(opts) {
     this.options = this.options || {};
@@ -409,16 +419,16 @@ var World = klass({
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.render();
   },
-  onDocumentMouseMove: function(event) {
+  onMouseMove: function(event) {
     event.preventDefault();
 
     this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
     this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
   },
-  onDocumentMouseDown: function() {
+  onMouseDown: function() {
     this.checkForIntersections = true;
   },
-  onDocumentMouseUp: function() {
+  onMouseUp: function() {
     this.checkForIntersections = false;
   }
 });

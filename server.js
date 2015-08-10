@@ -7,8 +7,10 @@ var server = app.listen(process.env.PORT || 3000, function() {
 
 var io = require('socket.io')(server);
 
+// ensure all messages are scoped by the socket that connected
 io.on('connection', function (socket) {
-  console.log('new client listening');
+
+  console.log('New client listening :-)');
 
   socket.on('world:created', function(data){
     console.log('world:created', data);

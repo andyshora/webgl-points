@@ -18,6 +18,15 @@
 
 ## Todo
 
-- Increasing to billions of particles. Proper GPU required, dedicated memory. Faster CPU required for bigger initial world creation.
+- Increasing to billions of particles. Proper GPU required, dedicated memory. Faster CPU required for bigger initial world creation. Currently crashing at creation stage probably due to there being no time to recoup memory during the particle loop.
 
 - Potential to group billions of particles into sub-worlds, which provide finer view when focussed on. Much like marker grouping on maps.
+
+## Adding an app to dokku
+
+- `ssh root@178.62.102.69`
+- `dokku help`
+- `dokku apps:create app-name`
+- `dokku domains:add ...`
+- Add dokku remote `dokku@178.62.102.69:app-name`
+- `git push dokku master`
