@@ -116,7 +116,7 @@ input[type=number]:active, input[type=text]:active {
 }
 
 .world {
-  cursor: crosshair;
+  /*cursor: crosshair;*/
 }
 
 canvas {

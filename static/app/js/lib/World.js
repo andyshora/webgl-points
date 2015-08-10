@@ -223,6 +223,10 @@ var World = klass({
     this.shaderAttributes.alpha.needsUpdate = true;
     this.updateVertices = true;
 
+    var axes = this.buildAxes(this.options.size * 0.8);
+    this.scene.add(axes);
+    console.log(this.scene);
+
     // point system material
     // using custom shaders so rendering changes run in parallel on the GPU
     var shaderMaterial = new THREE.ShaderMaterial( {
@@ -239,6 +243,48 @@ var World = klass({
     this.pointCloud = new THREE.PointCloud(this.pointCloudGeometry, shaderMaterial);
     this.pointCloud.sortPoints = true;
     this.pointCloud.dynamic = true;
+  },
+  buildAxes: function(length) {
+    var axes = new THREE.Object3D();
+
+    axes.add( this.buildAxis( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( length, 0, 0 ), 0xFF0000, false ) ); // +X
+    axes.add( this.buildAxis( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( -length, 0, 0 ), 0xFF0000, true) ); // -X
+
+
+    axes.add( this.buildAxis( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, length, 0 ), 0x00FF00, false ) ); // +Y
+    axes.add( this.buildAxis( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, -length, 0 ), 0x00FF00, true ) ); // -Y
+
+    axes.add( this.buildAxis( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, length ), 0x0000FF, false ) ); // +Z
+    axes.add( this.buildAxis( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, -length ), 0x0000FF, true ) ); // -Z
+
+    return axes;
+  },
+  /**
+   * Draw the x/y/x axis of the world
+   * @return {Object<THREE.Line>} The axis to add to the scene
+   */
+  buildAxis: function (src, dst, colorHex, positiveSide) {
+    var geom = new THREE.Geometry(),
+          mat;
+
+    if (positiveSide) {
+      // mat = new THREE.LineDashedMaterial({ linewidth: 3, color: colorHex, dashSize: 3, gapSize: 3 });
+      mat = new THREE.LineBasicMaterial({ linewidth: 1, fog: true, color: colorHex, transparent: true, opacity: 0.3 });
+
+    } else {
+      mat = new THREE.LineBasicMaterial({ linewidth: 1, fog: true, color: colorHex, transparent: true, opacity: 1 });
+    }
+
+    console.log(mat);
+
+    geom.vertices.push( src.clone() );
+    geom.vertices.push( dst.clone() );
+
+    // geom.computeLineDistances(); // This one is SUPER important, otherwise dashed lines will appear as simple plain lines
+
+    var axis = new THREE.Line( geom, mat, THREE.LinePieces );
+
+    return axis;
   },
   /**
    * Bind mouse/touch event handlers to interface the controls
@@ -345,12 +391,7 @@ var World = klass({
       var time = Date.now() * 0.0005;
       this.pointCloud.rotation.x = time * 0.25;
       this.pointCloud.rotation.y = time * 0.5;
-    }
-
-    // check if vertices have chaged since last render
-    if (this.updateVertices) {
-      this.pointCloudGeometry.verticesNeedUpdate = true;
-      this.updateVertices = false;
+      this.updateVertices = true;
     }
 
     // flags to ensure we do work in this frame's budget only
@@ -448,6 +489,12 @@ var World = klass({
         this.updatePoint(intersection.index, null, null, null, null, null, this.options.pointSize * 5);
         this.showPointDetails(intersection.index);
       }
+    }
+
+    // check if vertices have chaged since last render
+    if (this.updateVertices) {
+      this.pointCloudGeometry.verticesNeedUpdate = true;
+      this.updateVertices = false;
     }
 
     // todo - consider reducing refresh rate for higher number of points

@@ -17,6 +17,7 @@ app.controller('MainCtrl', function ($scope) {
   var world = null;
 
   $scope.createWorld = function() {
+
     world = new World('Andy\'s World', {
       numPoints: parseInt($scope.numPoints, 10),
       numReservePoints: parseInt($scope.numPoints, 10) < 10000 ? 10000 : parseInt($scope.numPoints, 10),
@@ -33,6 +34,8 @@ app.controller('MainCtrl', function ($scope) {
     });
 
     $scope.worldCreated = true;
+    socket.emit('world:created', { ua: navigator.userAgent });
+
   };
 
   $scope.$watch('numPoints', function(numPoints) {
@@ -74,7 +77,5 @@ app.controller('MainCtrl', function ($scope) {
   socket.on('world:points:update', function(data) {
     world.updatePoint(data.i, data.x, data.y, data.z, data.payload, data.color, data.size);
   });
-
-  socket.emit('world:created', { ua: navigator.userAgent });
 
 });
