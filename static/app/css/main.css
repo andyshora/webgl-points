@@ -2,7 +2,8 @@ body {
   margin: 0;
   padding: 0;
   background: black;
-  font-family: Arial;
+  font-family: 'Ropa Sans';
+  letter-spacing: 1px;
   overflow: hidden;
 }
 .controls-trigger {
@@ -20,11 +21,26 @@ body {
   cursor: pointer;
 
 }
+.btn {
+  padding: 6px 13px;
+  background: rgba(255,255,255,.05);
+  color: white;
+  border: 1px solid rgba(255,255,255,.5);
+  letter-spacing: 1px;
+  font-family: 'Ropa Sans';
+  font-size: 10px;
+  cursor: pointer;
+  transition: background .5s;
+}
+.btn:hover {
+  background: rgba(255,255,255,.1);
+}
 .controls-help {
   position: absolute;
   left: 0;
   z-index: 2;
-  width: 80%;
+  width: 50%;
+  min-width: 700px;
   background: rgba(255, 255, 255, .05);
   color: white;
   height: 90px;
