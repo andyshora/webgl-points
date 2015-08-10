@@ -53,7 +53,7 @@
         float depth = gl_FragCoord.z / gl_FragCoord.w;
         const vec3 fogColor = vec3( 0.1 );
 
-        float fogFactor = smoothstep( worldSize * 1.8, worldSize * 2.5, depth );
+        float fogFactor = smoothstep( worldSize * 1.8, worldSize * 3.5, depth );
         gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );
 
       }
@@ -91,6 +91,7 @@
   </div>
 
   <div class="world-form" ng-hide="worldCreated">
+    <h1>Create a New World</h1>
     <div><label>Number of points</label><input type="text" ng-model="numPoints"></div>
     <div><label>Point size</label><input type="text" ng-model="pointSize"></div>
     <div><label>World axis length</label><input type="text" ng-model="worldSize"></div>

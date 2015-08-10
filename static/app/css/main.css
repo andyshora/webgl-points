@@ -2,6 +2,7 @@ body {
   margin: 0;
   padding: 0;
   background: black;
+  color: white;
   font-family: 'Ropa Sans';
   letter-spacing: 1px;
   overflow: hidden;
@@ -67,18 +68,22 @@ input[type=number]:active, input[type=text]:active {
   padding: 20px;
   border: 1px solid rgba(255,255,255,.5);
 }
+.world-form > h1 {
+  text-align: center;
+}
 .world-form > div {
   margin: 0 0 5px 0;
 }
 .world-form label {
-  width: 200px;
+  width: 240px;
   text-align: right;
   display: inline-block;
   color: white;
   margin-right: 10px;
 }
 .world-form .btn {
-  margin-left: 210px;
+  margin: 10px 250px 0;
+  width: 130px;
 }
 .controls-help--open {
   bottom: 0;
