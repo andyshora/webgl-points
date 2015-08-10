@@ -190,9 +190,9 @@ var World = klass({
       attributes:     this.shaderAttributes,
       vertexShader:   document.getElementById(this.options.vertexShaderId).textContent,
       fragmentShader: document.getElementById(this.options.fragmentShaderId).textContent,
-      transparent: true,
-      vertexColor: true,
-      depthTest: false // removes bg overlap
+      transparent:    true,
+      vertexColor:    true,
+      depthTest:      false /* removes bg overlap */
     });
 
     // create the point system
