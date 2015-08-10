@@ -70,12 +70,22 @@ app.controller('MainCtrl', function ($scope) {
     socket.emit('world:test:add-points', { n: 100, size: world.options.size });
   };
 
+  // instruction to add point received
   socket.on('world:points:add', function(data) {
     world.addPoint(data.x, data.y, data.z, data.payload);
   });
 
+  socket.on('world:points:add-bulk', function(data) {
+    // world.addPoints() - todo, implement
+  });
+
+  // instruction to update point received
   socket.on('world:points:update', function(data) {
     world.updatePoint(data.i, data.x, data.y, data.z, data.payload, data.color, data.size);
+  });
+
+  socket.on('world:points:update-bulk', function(data) {
+    // world.updatePoints() - todo, implement
   });
 
 });

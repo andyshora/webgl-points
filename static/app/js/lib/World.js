@@ -39,6 +39,7 @@ var World = klass({
 
     this.n = 0; // animation frame number
 
+    // achieve target frame rate by skipping frames between rendering
     switch (this.options.targetFrameRate) {
       case 60: this.framesToSkip = 0; break;
       case 30: this.framesToSkip = 1; break;
@@ -343,16 +344,10 @@ var World = klass({
       requestId = requestAnimationFrame(this.animate.bind(this));
       return;
     }
-
     this.n = 0;
-
-    // console.log(this.n);
-
-    // var t1 = +new Date();
 
     requestId = requestAnimationFrame(this.animate.bind(this));
 
-    // console.log(this.render);
     this.controls.update();
 
     if (this.options.showStats) {
@@ -363,12 +358,7 @@ var World = klass({
       this.movePoints();
     }
 
-    // var t2 = +new Date();
-    // console.log('animate', t2 - t1);
-
     this.render();
-    // var t3 = +new Date();
-    // console.log('render', t3 - t2);
   },
   /**
    * Set a flag indicating whether the world should auto rotate
