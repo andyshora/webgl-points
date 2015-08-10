@@ -1,6 +1,15 @@
-var stop = false;
-
+/**
+ * 3D WebGL World Viewer
+ * Displaying upto 10M points in a 3D space
+ * @return {null}
+ */
 var World = klass({
+  /**
+   * Initialize the World object, setting up the geometry, camera, and scene.
+   * @param  {string} name  The name of the world instance
+   * @param  {object} opts  An object containing world creation options.
+   * @return {null}
+   */
   initialize: function(name, opts) {
 
     // Check for WebGL Support
@@ -12,7 +21,6 @@ var World = klass({
     this.name = name;
 
     this.defaultOptions = {
-      'name': { type: 'string', defaultValue: 'Test World' },
       'size': { type: 'number', defaultValue: 10000 },
       'numPoints': { type: 'number', defaultValue: 1000 },
       'numReservePoints': { type: 'number', defaultValue: 1000 },
@@ -99,6 +107,10 @@ var World = klass({
     this.bindEventHandlers();
     this.animate();
   },
+  /**
+   * Initialise the camera used to view the scene from a point in space.
+   * @return {null}
+   */
   initCamera: function() {
     this.camera = new THREE.PerspectiveCamera(
       this.cameraOptions.viewAngle,
@@ -109,6 +121,10 @@ var World = klass({
     // the camera starts at 0,0,0 so pull it back
     this.camera.position.z = this.options.size * 2;
   },
+  /**
+   * Initialise the camera controls for the scene
+   * @return {null}
+   */
   initControls: function() {
     this.controls = new THREE.OrbitControls(this.camera);
     this.controls.zoomSpeed = 0.5;
@@ -118,6 +134,10 @@ var World = klass({
     // this.controls.autoRotate = true;
     // this.controls.autoRotateSpeed = 1.0;
   },
+  /**
+   * Initialise the Point Cloud, which contains geometry with all points.
+   * @return {null}
+   */
   initPointCloud: function() {
 
     this.pointCloudGeometry = new THREE.Geometry();
@@ -201,6 +221,10 @@ var World = klass({
     this.pointCloud.sortPoints = true;
     this.pointCloud.dynamic = true;
   },
+  /**
+   * Bind mouse/touch event handlers to interface the controls
+   * @return {null}
+   */
   bindEventHandlers: function() {
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
     window.addEventListener('mousemove', this.onMouseMove.bind(this), false);
@@ -217,6 +241,10 @@ var World = klass({
       window.addEventListener('mouseup', this.onMouseUp.bind(this), false);
     }
   },
+  /**
+   * Set world instance options
+   * @param {object} opts World options passed into constructor
+   */
   setOptions: function(opts) {
     this.options = this.options || {};
 
@@ -241,6 +269,10 @@ var World = klass({
 
     }
   },
+  /**
+   * Animate one frame of the scene
+   * @return {null}
+   */
   animate: function() {
 
     var requestId = requestAnimationFrame(this.animate.bind(this));
@@ -258,9 +290,17 @@ var World = klass({
 
     this.render();
   },
+  /**
+   * Set a flag indicating whether the world should auto rotate
+   * @param {boolean} autoRotate Flag for whether the world should spin
+   */
   setAutoRotate: function(autoRotate) {
     this.options.autoRotate = autoRotate;
   },
+  /**
+   * Render the scene. Normally called from this.animate(), once per GPU clock cycle.
+   * @return {null}
+   */
   render: function () {
 
     if (this.options.autoRotate) {
@@ -377,6 +417,11 @@ var World = klass({
     this.renderer.render(this.scene, this.camera);
 
   },
+  /**
+   * Show details from the selected point
+   * @param  {number} i Index of the point in the geometry
+   * @return {null}
+   */
   showPointDetails: function(i) {
     var p = this.pointCloudGeometry.vertices[i];
 
@@ -386,6 +431,10 @@ var World = klass({
     }
 
   },
+  /**
+   * Test function which adds a yellow ring of points
+   * @return {null}
+   */
   testAddPoints: function () {
     console.log('testAddPoints');
 
@@ -395,12 +444,34 @@ var World = klass({
       this.addPoint((Math.cos(i) + 1) * 1000, (Math.sin(i) + 1) * 1000, 0, payload);
     }
   },
+  /**
+   * Add a single point to the cloud's geometry.
+   * @param {number} x       X position
+   * @param {number} y       Y position
+   * @param {number} z       Z position
+   * @param {object} payload Instance data
+   */
   addPoint: function(x, y, z, payload) {
     this.addPointsQueue.push({ x: x, y: y, z: z, payload: payload });
   },
+  /**
+   * Update an existing point of the cloud's geometry.
+   * @param {number} i       Index of the point in the geometry
+   * @param {number} x       X position
+   * @param {number} y       Y position
+   * @param {number} z       Z position
+   * @param {object} payload Instance data
+   * @param {object} color Three.Color object for the point color
+   * @param {number} size Particle size
+   */
   updatePoint: function (i, x, y, z, payload, color, size) {
     this.updatePointsQueue.push({ i: i, x: x, y: y, z: z, payload: payload, color: color, size: size })
   },
+  /**
+   * Test function which moves n points to the center of the point cloud.
+   * @param  {number} n How many points to move
+   * @return {null}
+   */
   testMovePoints: function(n) {
     console.log('testMovePoints');
 
@@ -412,6 +483,10 @@ var World = klass({
       this.updatePoint(i, pX, pY, pZ, {}, null, null);
     }
   },
+  /**
+   * Event handler for when the window is resized
+   * @return {null}
+   */
   onWindowResize: function() {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
@@ -419,15 +494,27 @@ var World = klass({
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.render();
   },
+  /**
+   * Event handler for when the cursor (or touch) moves
+   * @return {null}
+   */
   onMouseMove: function(event) {
     event.preventDefault();
 
     this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
     this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
   },
+  /**
+   * Event handler for when the mouse (or finger) taps down
+   * @return {null}
+   */
   onMouseDown: function() {
     this.checkForIntersections = true;
   },
+  /**
+   * Event handler for when the mouse (or finger) lifts up
+   * @return {null}
+   */
   onMouseUp: function() {
     this.checkForIntersections = false;
   }

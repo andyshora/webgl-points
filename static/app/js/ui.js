@@ -17,18 +17,18 @@ app.controller('MainCtrl', function ($scope) {
 
   $scope.createWorld = function() {
     world = new World('Andy\'s World', {
-        numPoints: parseInt($scope.numPoints, 10),
-        numReservePoints: parseInt($scope.numPoints, 10) < 10000 ? 10000 : parseInt($scope.numPoints, 10),
-        size: parseInt($scope.worldSize, 10),
-        pointSize: parseInt($scope.pointSize, 10),
-        showStats: true,
-        vertexShaderId: 'vertexshader',
-        fragmentShaderId: 'fragmentshader',
-        containerId: 'WebGLCanvas',
-        debug: true,
-        onPointSelected: onPointSelected,
-        autoRotate: $scope.autoRotate
-      });
+      numPoints: parseInt($scope.numPoints, 10),
+      numReservePoints: parseInt($scope.numPoints, 10) < 10000 ? 10000 : parseInt($scope.numPoints, 10),
+      size: parseInt($scope.worldSize, 10),
+      pointSize: parseInt($scope.pointSize, 10),
+      showStats: true,
+      vertexShaderId: 'vertexshader',
+      fragmentShaderId: 'fragmentshader',
+      containerId: 'WebGLCanvas',
+      debug: true,
+      onPointSelected: onPointSelected,
+      autoRotate: $scope.autoRotate
+    });
 
     $scope.worldCreated = true;
   };
@@ -58,8 +58,10 @@ app.controller('MainCtrl', function ($scope) {
     world.addPoint(data.x, data.y, data.z, data.payload);
   });
 
+  socket.on('world:points:update', function(data) {
+    world.updatePoint(data.i, data.x, data.y, data.z, data.payload, data.color, data.size);
+  });
+
   socket.emit('world:created', { ua: navigator.userAgent });
-
-
 
 });
