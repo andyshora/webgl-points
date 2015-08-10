@@ -1,6 +1,6 @@
 # webgl-points
 
-
+- Add dokku remote: `git remote add dokku dokku@178.62.102.69:world`
 
 ## [Shaders](http://threejs.org/docs/#Reference/Materials/ShaderMaterial)
 
