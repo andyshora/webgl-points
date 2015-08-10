@@ -344,9 +344,12 @@ var World = klass({
         //   this.updatePoint(intersections[i].index, null, null, null, null, null, this.options.pointSize * 5);
         // }
 
+        // sort by closeness to ray
         // select only first intersected point
-        var intersection = ( intersections.length ) > 0 ? intersections[ 0 ] : null;
+        var intersection = ( intersections.length ) > 0 ? _.sortBy(intersections, 'distanceToRay')[ 0 ] : null;
         if (intersection) {
+
+          console.log('intersection', intersection);
 
           // reset last active intersection
           if (this.lastActiveIntersection) {
