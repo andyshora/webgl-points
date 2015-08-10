@@ -16,6 +16,8 @@
 
 - Find how to move points via gl_Position in a custom shader
 
+- The longest possible array could have is 2^32-1 = 4,294,967,295 = 4.29 billion elements. You'd have to use a 64-bit browser to get a longer variable type.
+
 ## Todo
 
 - Increasing to billions of particles. Proper GPU required, dedicated memory. Faster CPU required for bigger initial world creation. Currently crashing at creation stage probably due to there being no time to recoup memory during the particle loop.
