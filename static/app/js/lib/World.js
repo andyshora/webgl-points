@@ -22,7 +22,8 @@ var World = klass({
       'vertexShaderId': { type: 'string', defaultValue: 'vertexshader' },
       'fragmentShaderId': { type: 'string', defaultValue: 'fragmentshader' },
       'containerId': { type: 'string', defaultValue: 'WebGLCanvas' },
-      'onPointSelected': { type: 'function', defaultValue: null }
+      'onPointSelected': { type: 'function', defaultValue: null },
+      'autoRotate': { type: 'boolean', defaultValue: false }
     };
 
     this.setOptions(opts);
@@ -247,7 +248,16 @@ var World = klass({
 
     this.render();
   },
+  setAutoRotate: function(autoRotate) {
+    this.options.autoRotate = autoRotate;
+  },
   render: function () {
+
+    if (this.options.autoRotate) {
+      var time = Date.now() * 0.0005;
+      this.pointCloud.rotation.x = time * 0.25;
+      this.pointCloud.rotation.y = time * 0.5;
+    }
 
     // check if vertices have chaged since last render
     if (this.updateVertices) {

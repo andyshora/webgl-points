@@ -32,9 +32,5 @@ function sendTestPoints(socket, n, size) {
   }
 }
 
+// serve static files
 app.use(express.static(__dirname + '/static'));
-
-// var io = require('socket.io')(server);
-// io.on('connection', function(){ /* … */ });
-
-

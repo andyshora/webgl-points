@@ -5,6 +5,7 @@ app.controller('MainCtrl', function ($scope) {
 
   $scope.controlsOpen = false;
   $scope.point = {};
+  $scope.autoRotate = true;
 
   function onPointSelected(point) {
     $scope.point = point;
@@ -12,22 +13,29 @@ app.controller('MainCtrl', function ($scope) {
   }
 
   var world = new World('Andy\'s World', {
-    numPoints: 1000,
+    numPoints: 10000,
     numReservePoints: 100000,
-    size: 10000,
-    pointSize: 5,
-    showStats: false,
+    size: 1000000,
+    pointSize: 4,
+    showStats: true,
     vertexShaderId: 'vertexshader',
     fragmentShaderId: 'fragmentshader',
     containerId: 'WebGLCanvas',
     debug: true,
-    onPointSelected: onPointSelected
+    onPointSelected: onPointSelected,
+    autoRotate: $scope.autoRotate
   });
+
+  $scope.toggleRotation = function() {
+    $scope.autoRotate = !$scope.autoRotate;
+    world.setAutoRotate($scope.autoRotate);
+  };
 
   $scope.testMovePoints = function() {
     world.testMovePoints(100);
   };
   $scope.testAddPoints = function() {
+    // draw circle
     // world.testAddPoints();
 
     // get some test points to add
