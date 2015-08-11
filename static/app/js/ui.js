@@ -1,6 +1,11 @@
-var app = angular.module('WorldViewerApp', []);
+var app = angular.module('WorldViewerApp', ['ngResource', 'jsonFormatter']);
 
-app.controller('MainCtrl', function ($scope) {
+app.config(function($httpProvider) {
+  // required for REST API
+  $httpProvider.defaults.headers.common.Accept = 'application/json';
+});
+
+app.controller('MainCtrl', function ($scope, $resource, $http) {
 
   $scope.controlsOpen = false;
   $scope.point = {};
@@ -22,6 +27,8 @@ app.controller('MainCtrl', function ($scope) {
   for (var i = 0; i < 1000000; i++) {
     vertexIndex.push(null);
   }
+
+  var Entity = $resource('http://172.16.2.133:5000/api/v1/entities/:id');
 
   $scope.onCreateNewClicked = function() {
     es.close();
@@ -66,8 +73,28 @@ app.controller('MainCtrl', function ($scope) {
     }
   });
 
+  $scope.$watch('point', function(p) {
+    console.log(p);
+  }, true);
+
   function onPointSelected(point) {
-    $scope.point = point;
+    $scope.point.id = point.id;
+    $scope.point.prefab = point.prefab;
+
+    var entityData = Entity.get({ id: point.id }, function(data) {
+
+      if (entityData) {
+        $scope.point.payload = {
+          behaviours: entityData.behaviours,
+          engineAssignments: entityData.engineAssignments,
+          states: entityData.states
+        };
+        console.log('Entity data', $scope.point.payload);
+      }
+
+
+    });
+
     $scope.$apply();
   }
 
@@ -89,9 +116,6 @@ app.controller('MainCtrl', function ($scope) {
     $scope.autoRotate = !$scope.autoRotate;
     world.setAutoRotate($scope.autoRotate);
   };
-
-
-
 
   function initEventSource(dataSource) {
     console.log('initEventSource');
@@ -121,6 +145,16 @@ app.controller('MainCtrl', function ($scope) {
             // potentially sample the updates if they are very high frequency
             if (i % streamSampleRate === 0) {
               world.updatePoint(index, coords[0], coords[1], coords[2], { id: id });
+            }
+
+            // update UI if selected
+            if ($scope.point && ($scope.point.id === parseInt(id, 10))) {
+              $scope.point.x = coords[0];
+              $scope.point.y = coords[1];
+              $scope.point.z = coords[2];
+              // $scope.point.payload = { id: id };
+
+              $scope.$apply();
             }
 
 

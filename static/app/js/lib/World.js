@@ -107,7 +107,7 @@ var World = klass({
     this.initPointCloud();
 
     // add objects to scene
-    this.scene.add(this.camera);
+    // this.scene.add(this.camera);
     this.scene.add(this.pointCloud);
 
     if (this.options.containerId) {

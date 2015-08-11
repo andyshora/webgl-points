@@ -9,8 +9,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
 
   <link rel="shortcut icon" href="improbable.ico" />
+  <link rel="stylesheet" href="app/css/main.css">
 
   <script src="app/bower_components/angular/angular.min.js"></script>
+  <script src="app/bower_components/angular-resource/angular-resource.min.js"></script>
+  <script src="app/bower_components/json-formatter/dist/json-formatter.min.js"></script>
+  <link rel="stylesheet" href="app/bower_components/json-formatter/dist/json-formatter.min.css">
+
   <script src="app/bower_components/three.js/three.js"></script>
   <script src="app/bower_components/klass/klass.min.js"></script>
   <script src="app/bower_components/underscore/underscore-min.js"></script>
@@ -63,7 +68,7 @@
       }
 
   </script>
-  <link rel="stylesheet" href="app/css/main.css">
+
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Serif:400">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ropa+Sans:400">
 </head>
@@ -73,10 +78,10 @@
 
   <table class="point-details" ng-show="worldCreated && point.id" cellpadding="0" cellspacing="0">
     <tr>
-      <td>ID</td><td>{{ point.id }}</td>
+      <td>ID</td><td class="style--{{ point.prefab }}">{{ point.id }}</td>
     </tr>
     <tr>
-      <td>Prefab</td><td>{{ point.prefab }}</td>
+      <td>Prefab</td><td class="style--{{ point.prefab }}">{{ point.prefab }}</td>
     </tr>
     <tr>
       <td>x</td><td>{{ point.x }}</td>
@@ -88,7 +93,7 @@
       <td>z</td><td>{{ point.z }}</td>
     </tr>
     <tr>
-      <td>Data</td><td>{{ point.payload }}</td>
+      <td colspan="2" class="entity-json" ng-show="point.payload"><json-formatter class="json-formatter-dark" open="1" json="point.payload"></json-formatter></td>
     </tr>
   </table>
 
