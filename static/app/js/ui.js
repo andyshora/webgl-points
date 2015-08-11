@@ -73,13 +73,16 @@ app.controller('MainCtrl', function ($scope, $resource, $http) {
     }
   });
 
-  $scope.$watch('point', function(p) {
+  /*$scope.$watch('point', function(p) {
     console.log(p);
-  }, true);
+  }, true);*/
 
   function onPointSelected(point) {
     $scope.point.id = point.id;
     $scope.point.prefab = point.prefab;
+    $scope.point.x = point.x;
+    $scope.point.y = point.y;
+    $scope.point.z = point.z;
 
     var entityData = Entity.get({ id: point.id }, function(data) {
 
@@ -89,7 +92,7 @@ app.controller('MainCtrl', function ($scope, $resource, $http) {
           engineAssignments: entityData.engineAssignments,
           states: entityData.states
         };
-        console.log('Entity data', $scope.point.payload);
+        // console.log('Entity data', $scope.point.payload);
       }
 
 

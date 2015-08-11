@@ -78,19 +78,19 @@
 
   <table class="point-details" ng-show="worldCreated && point.id" cellpadding="0" cellspacing="0">
     <tr>
-      <td>ID</td><td class="style--{{ point.prefab }}">{{ point.id }}</td>
+      <td>ID</td><td class="cell--small style--{{ point.prefab }}">{{ point.id }}</td>
     </tr>
     <tr>
-      <td>Prefab</td><td class="style--{{ point.prefab }}">{{ point.prefab }}</td>
+      <td>Prefab</td><td class="cell--small style--{{ point.prefab }}">{{ point.prefab }}</td>
     </tr>
     <tr>
-      <td>x</td><td>{{ point.x }}</td>
+      <td>x</td><td class="cell--small">{{ point.x }}</td>
     </tr>
     <tr>
-      <td>y</td><td>{{ point.y }}</td>
+      <td>y</td><td class="cell--small">{{ point.y }}</td>
     </tr>
     <tr>
-      <td>z</td><td>{{ point.z }}</td>
+      <td>z</td><td class="cell--small">{{ point.z }}</td>
     </tr>
     <tr>
       <td colspan="2" class="entity-json" ng-show="point.payload"><json-formatter class="json-formatter-dark" open="1" json="point.payload"></json-formatter></td>
