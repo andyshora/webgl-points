@@ -31,13 +31,18 @@ var World = klass({
       'fragmentShaderId': { type: 'string', defaultValue: 'fragmentshader' },
       'containerId': { type: 'string', defaultValue: 'WebGLCanvas' },
       'onPointSelected': { type: 'function', defaultValue: null },
+      'onPointAdded': { type: 'function', defaultValue: null },
+      'onPointDeleted': { type: 'function', defaultValue: null },
       'autoRotate': { type: 'boolean', defaultValue: false },
-      'targetFrameRate': { type: 'number', defaultValue: 60 }
+      'targetFrameRate': { type: 'number', defaultValue: 60 },
+      'prefabColors': { type: 'object', defaultValue: { 'Cube': new THREE.Color(0x00ffff), 'Tree': new THREE.Color(0xff00ff) } }
     };
 
     this.setOptions(opts);
 
     this.n = 0; // animation frame number
+    this.animationFrameRequestId = null;
+    this.worldStopped = false;
 
     // achieve target frame rate by skipping frames between rendering
     switch (this.options.targetFrameRate) {
@@ -65,6 +70,7 @@ var World = klass({
     this.reservePointsUsed = 0;
     this.addPointsQueue = [];
     this.updatePointsQueue = [];
+    this.deletePointsQueue = [];
 
     this.updateVertices = false;
     this.pointsToMove = false;
@@ -130,6 +136,8 @@ var World = klass({
       this.cameraOptions.far
     );
     // the camera starts at 0,0,0 so pull it back
+    this.camera.position.x = this.options.size * 2;
+    this.camera.position.y = this.options.size * 2;
     this.camera.position.z = this.options.size * 2;
   },
   /**
@@ -186,7 +194,7 @@ var World = klass({
           pZ = Math.random() * this.options.size - (this.options.size / 2);
 
       var point = new THREE.Vector3(pX, pY, pZ);
-      point.id = 'point-' + i;
+      point.id = 'test-point-' + i;
       point.payload = { data: 123 };
 
       // add it to the point system
@@ -209,7 +217,7 @@ var World = klass({
       // doesnt matter where we store these hidden point
       var pX = 0, pY = 0, pZ = 0;
       var point = new THREE.Vector3(pX, pY, pZ);
-      point.id = 'point-' + i;
+      point.id = 'test-point-' + i;
       point.payload = { data: 0 };
 
       // add it to the point system
@@ -326,10 +334,27 @@ var World = klass({
 
       } else {
         // set default option
-        this[key] = this.defaultOptions[key].defaultValue;
+        this.options[key] = this.defaultOptions[key].defaultValue;
       }
 
     }
+  },
+  /**
+   * Destroy the scene
+   * todo - not working
+   * @return {null}
+   */
+  destroy: function() {
+    this.worldStopped = true;
+    cancelAnimationFrame(this.animationFrameRequestId);
+    document.getElementById(this.options.containerId).innerHTML = null;
+    this.scene = null;
+    this.camera = null;
+    this.controls = null;
+    this.options = null;
+    this.raycaster = null;
+    this.pointCloudGeometry = null;
+    this.pointCloud = null;
   },
   /**
    * Animate one frame of the scene
@@ -337,16 +362,14 @@ var World = klass({
    */
   animate: function() {
 
-    var requestId = null;
-
     if (this.n < this.framesToSkip) {
       this.n++;
-      requestId = requestAnimationFrame(this.animate.bind(this));
+      this.animationFrameRequestId = requestAnimationFrame(this.animate.bind(this));
       return;
     }
     this.n = 0;
 
-    requestId = requestAnimationFrame(this.animate.bind(this));
+    this.animationFrameRequestId = requestAnimationFrame(this.animate.bind(this));
 
     this.controls.update();
 
@@ -375,6 +398,10 @@ var World = klass({
    */
   render: function () {
 
+    if (this.worldStopped) {
+      return;
+    }
+
     if (this.options.autoRotate) {
       var time = Date.now() * 0.0005;
       this.pointCloud.rotation.x = time * 0.25;
@@ -394,6 +421,10 @@ var World = klass({
 
     while ((timeElapsed < 10) && this.updatePointsQueue && (pointToUpdate = this.updatePointsQueue.shift())) {
 
+      if (!this.pointCloudGeometry.vertices[pointToUpdate.i]) {
+        console.error('Failed to update vertex', pointToUpdate);
+        continue;
+      }
       if (typeof pointToUpdate.x === 'number') {
         this.pointCloudGeometry.vertices[pointToUpdate.i].set(pointToUpdate.x, pointToUpdate.y, pointToUpdate.z);
       }
@@ -426,8 +457,14 @@ var World = klass({
       }
 
       // add it to the point system
+      this.pointCloudGeometry.vertices[i].id = pointToAdd.payload.id;
+      this.pointCloudGeometry.vertices[i].prefab = pointToAdd.payload.prefab;
       this.pointCloudGeometry.vertices[i].set(pointToAdd.x, pointToAdd.y, pointToAdd.z);
       this.pointCloudGeometry.vertices[i].payload = pointToAdd.payload;
+
+      // color will change depending on point type
+      this.shaderAttributes.customColor.value[i] = this.options.prefabColors[this.pointCloudGeometry.vertices[i].prefab];
+
       this.reservePointsUsed++;
 
       // show as visible
@@ -436,11 +473,27 @@ var World = klass({
 
       numPointsAddedThisFrame++;
       timeElapsed += +new Date() - startTime;
+
+      if (this.options.onPointAdded) {
+        this.options.onPointAdded.apply(this, [i, pointToAdd.payload.id]);
+
+      }
     }
+
+    while ((timeElapsed < 10) && this.deletePointsQueue && (pointToDelete = this.deletePointsQueue.shift())) {
+      console.log('delete point async. vertex:', pointToDelete);
+      this.shaderAttributes.alpha.value[pointToDelete.i] = 0;
+      this.options.onPointDeleted.apply(this, [pointToDelete.i]);
+    }
+
+
 
     if (numPointsAddedThisFrame || numPointsUpdatedThisFrame) {
 
-      console.log('Work done this frame: ', 'points added:', numPointsAddedThisFrame, 'points updated:', numPointsUpdatedThisFrame);
+      if (this.options.debug) {
+        // console.log('Work done this frame: ', 'points added:', numPointsAddedThisFrame, 'points updated:', numPointsUpdatedThisFrame);
+      }
+
       this.shaderAttributes.customColor.needsUpdate = true;
       this.shaderAttributes.alpha.needsUpdate = true;
       this.shaderAttributes.pointSize.needsUpdate = true;
@@ -524,6 +577,7 @@ var World = klass({
    * @param {object} payload Instance data
    */
   addPoint: function(x, y, z, payload) {
+    // console.log('addPoint', x, y, z, payload);
     this.addPointsQueue.push({ x: x, y: y, z: z, payload: payload });
   },
   /**
@@ -537,7 +591,24 @@ var World = klass({
    * @param {number} size Particle size
    */
   updatePoint: function (i, x, y, z, payload, color, size) {
+    if (!i || typeof i !== 'number') {
+      console.error('Could not update point. Invalid index.', i);
+      return;
+    }
     this.updatePointsQueue.push({ i: i, x: x, y: y, z: z, payload: payload, color: color, size: size })
+  },
+  /**
+   * Update an existing point of the cloud's geometry.
+   * @param {number} i       Index of the point in the geometry
+   * @param {number} x       X position
+   * @param {number} y       Y position
+   * @param {number} z       Z position
+   * @param {object} payload Instance data
+   * @param {object} color Three.Color object for the point color
+   * @param {number} size Particle size
+   */
+  deletePoint: function (i) {
+    this.deletePointsQueue.push({ i: i })
   },
   /**
    * Test function which moves n points to the center of the point cloud.

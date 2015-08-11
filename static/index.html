@@ -70,9 +70,13 @@
 <body ng-controller="MainCtrl" ng-cloak>
   <div class="world" id="WebGLCanvas" ng-show="worldCreated"></div>
 
+
   <table class="point-details" ng-show="worldCreated && point.id" cellpadding="0" cellspacing="0">
     <tr>
       <td>ID</td><td>{{ point.id }}</td>
+    </tr>
+    <tr>
+      <td>Prefab</td><td>{{ point.prefab }}</td>
     </tr>
     <tr>
       <td>x</td><td>{{ point.x }}</td>
@@ -89,13 +93,17 @@
   </table>
 
   <div ng-show="worldCreated" class="test-buttons">
-    <button class="btn" ng-click="testAddPoints()">Add Points</button>
-    <button class="btn" ng-click="testMovePoints()">Move Points</button>
+    <!-- <button class="btn" ng-click="testAddPoints()">Add Points</button>
+    <button class="btn" ng-click="testMovePoints()">Move Points</button> -->
     <!-- <button class="btn" ng-click="toggleRotation()">Auto-rotate</button> -->
+    <!-- <button class="btn" ng-click="onCreateNewClicked()">Create New World</button> -->
   </div>
+
+  <span class="particle-count" ng-show="worldCreated">Particles: {{ particlesInWorld }}</span>
 
   <div class="world-form" ng-hide="worldCreated">
     <h1>Create a New World</h1>
+    <div><label>Data Source</label><input type="url" ng-model="dataSource"></div>
     <div><label>Number of points</label><input type="text" ng-model="numPoints"></div>
     <div><label>Point size</label><input type="text" ng-model="pointSize"></div>
     <div><label>World axis length</label><input type="text" ng-model="worldSize"></div>
