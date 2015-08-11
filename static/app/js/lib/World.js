@@ -369,6 +369,8 @@ var World = klass({
   },
   /**
    * Render the scene. Normally called from this.animate(), once per GPU clock cycle.
+   * todo - reduce this code, or throttle some instructions, to ensure this completes
+   * in < 10ms so it fits in a frame
    * @return {null}
    */
   render: function () {
