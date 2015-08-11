@@ -9,9 +9,9 @@ app.controller('MainCtrl', function ($scope) {
   $scope.particlesInWorld = 0;
 
   // world params
-  $scope.worldSize = 4000;
+  $scope.worldSize = 10000;
   $scope.numPoints = 0;
-  $scope.pointSize = 5;
+  $scope.pointSize = 6;
   $scope.targetFrameRate = 60;
   $scope.dataSource = 'http://172.16.2.133:5005/entities/position?southWest=-31,-24&northEast=30,23';
 
@@ -24,10 +24,11 @@ app.controller('MainCtrl', function ($scope) {
   }
 
   $scope.onCreateNewClicked = function() {
-    world.destroy();
-    world = null;
-    $scope.worldCreated = false;
     es.close();
+    world.destroy();
+    // world = null;
+    $scope.worldCreated = false;
+    $scope.point = {};
   };
 
   $scope.createWorld = function() {
@@ -71,7 +72,7 @@ app.controller('MainCtrl', function ($scope) {
   }
 
   function onPointDeleted(i) {
-    console.log('onPointDeleted', i);
+    // console.log('onPointDeleted', i);
     $scope.particlesInWorld--;
     $scope.$apply();
   }
@@ -113,7 +114,7 @@ app.controller('MainCtrl', function ($scope) {
             var index = vertexIndex[parseInt(id, 10)];
 
             if (index === null) {
-              console.error('Invalid update request. Entity ' + id + ' has not been added yet:', vertexIndex[id]);
+              // console.log('Invalid update request. Entity ' + id + ' has not been added yet:', vertexIndex[id]);
               break;
             }
 
@@ -131,6 +132,7 @@ app.controller('MainCtrl', function ($scope) {
 
             // todo - check for dupes
             if (vertexIndex[id] !== null) {
+              // console.log('Dupe. Entity ' + id + ' already added');
               break;
             }
 

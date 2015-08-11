@@ -35,7 +35,7 @@ var World = klass({
       'onPointDeleted': { type: 'function', defaultValue: null },
       'autoRotate': { type: 'boolean', defaultValue: false },
       'targetFrameRate': { type: 'number', defaultValue: 60 },
-      'prefabColors': { type: 'object', defaultValue: { 'Cube': new THREE.Color(0x00ffff), 'Tree': new THREE.Color(0xff00ff) } }
+      'prefabColors': { type: 'object', defaultValue: { 'Tree': new THREE.Color(0x00ee76), 'Cube': new THREE.Color(0xff69b4) } }
     };
 
     this.setOptions(opts);
@@ -362,6 +362,10 @@ var World = klass({
    */
   animate: function() {
 
+    if (this.worldStopped) {
+      return;
+    }
+
     if (this.n < this.framesToSkip) {
       this.n++;
       this.animationFrameRequestId = requestAnimationFrame(this.animate.bind(this));
@@ -481,7 +485,6 @@ var World = klass({
     }
 
     while ((timeElapsed < 10) && this.deletePointsQueue && (pointToDelete = this.deletePointsQueue.shift())) {
-      console.log('delete point async. vertex:', pointToDelete);
       this.shaderAttributes.alpha.value[pointToDelete.i] = 0;
       this.options.onPointDeleted.apply(this, [pointToDelete.i]);
     }
