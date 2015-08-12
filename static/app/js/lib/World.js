@@ -494,7 +494,7 @@ var World = klass({
     if (numPointsAddedThisFrame || numPointsUpdatedThisFrame) {
 
       if (this.options.debug) {
-        // console.log('Work done this frame: ', 'points added:', numPointsAddedThisFrame, 'points updated:', numPointsUpdatedThisFrame);
+        console.log('Work done this frame: ', 'points added:', numPointsAddedThisFrame, 'points updated:', numPointsUpdatedThisFrame);
       }
 
       this.shaderAttributes.customColor.needsUpdate = true;

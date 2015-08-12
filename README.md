@@ -34,6 +34,14 @@
 
 - Throttle mousemove events when numPoints > 1000000
 
+## Testing
+
+- Unit testing would verify logic of operations, but due to async nature of the geometry updated we'd have to run tests in a real browser, on a machine with a comparable GPU, and find an intelligent way to verify what Three.js says has happened has actually been rendered on the screen.
+
+- Event source stream can easily be mocked for testing purposes.
+
+- I've seperated a lot of the functionality in the world so it's testable, however if more time was allowed I would have defined tests from the beginning. Lots of new ground was covered today, so it was not suitable to start with tests.
+
 ## Adding an app to dokku
 
 - `ssh root@178.62.102.69`
